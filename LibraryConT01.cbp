@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="LibraryConT01" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/LibraryConT01" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/LibraryConT01" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+			<Add option="-finput-charset=CP1251 -fexec-charset=CP1251" />
+			<Add directory="C:/development/SQLite" />
+			<Add directory="headeronly_src" />
+		</Compiler>
+		<Linker>
+			<Add library="libsqlite3.a" />
+			<Add directory="C:/development/SQLite" />
+		</Linker>
+		<Unit filename="TestDatabase.cpp" />
+		<Unit filename="TestDatabase.h" />
+		<Unit filename="headeronly_src/sqlite3pp.h" />
+		<Unit filename="headeronly_src/sqlite3ppext.h" />
+		<Unit filename="library.ico" />
+		<Unit filename="library.rc">
+			<Option compilerVar="WINDRES" />
+		</Unit>
+		<Unit filename="main.cpp" />
+		<Extensions />
+	</Project>
+</CodeBlocks_project_file>
