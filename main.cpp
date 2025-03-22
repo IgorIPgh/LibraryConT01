@@ -122,6 +122,7 @@ entity ilArr[] = {
 void gotoxy(int x, int y);
 void putsxy(int x, int y, char* str);
 void getsxy(char* txt, int x, int y, char* str);
+void clearRows(int a, int b);
 void SetConsoleSize(int dx, int dy);
 
 int  userControl();
@@ -182,6 +183,12 @@ void getsxy(char* txt, int x, int y, char* str){
     fgets(str, sizeof(str), stdin);
     int l = strlen(str);
     if(str[l-1] == '\n') str[l-1] = 0;
+}
+
+void clearRows(int a, int b){
+    for(int r=a;r<=b;r++) {
+      gotoxy(1,r); for(int c=0;c<90;c++) putchar(32);
+    }
 }
 
 // =========================================================
@@ -442,60 +449,16 @@ int  menuGetReaders()
 
 // ---------------------------------------------------------
 int  modePickBooks()  {
-    //wstring sql = widen(makeBookQuery());
     string sql = makeBookQuery();
-    putsxy( 8,26, (char*)sql.c_str());
+    clearRows(26,27);
+    putsxy(8,26, (char*)sql.c_str());
+    gotoxy(1,28);
 
-    TestDatabase tdb; tdb.testPickBooks(sql);
-/*
-    sqlite3pp::database db("LInSys.db");
+    TestDatabase tdb;
+    tdb.testPickBooks(sql);
 
-    ofstream outf("db_out.txt");
-	// Если мы не можем открыть этот файл для записи данных в него
-	if (!outf)
-	{
-		// То выводим сообщение об ошибке и выполняем exit()
-		cerr << "Uh oh, SomeText.txt could not be opened for writing!" << endl;
-		exit(1);
-	}
-
-    sqlite3pp::query query(db, sql.c_str());
-
-    string id, author, title, publisher, year, volume, year_p, volume_p, udk, bbk, isbn, count;
-    for (sqlite3pp::query::iterator i = query.begin(); i != query.end(); ++i) {
-      (*i).getter() >> id >> title >> author >> publisher >> year >> year_p >> volume >> volume_p >> udk >> bbk >> isbn >> count;
-
-      outf << "---" << id << "------------------\nauthor: " << author << "\ntitle: " << title << "\npublisher: " << publisher <<
-      "\nyear:" << year << "\nvolume: " << volume << "\nyear_p: " << year_p << "\nvolume_p: " << volume_p << "\nudk: " << udk <<
-      "\nbbk: " << bbk << "\nisbn: " << isbn << "\ncount: " << count << endl;
-
-      cout << "---" << id << "------------------\nauthor: " << (author) << "\ntitle: " << (title) << "\npublisher: " << (publisher) <<
-      "\nyear:" << year << "\nvolume: " << volume << "\nyear_p: " << year_p << "\nvolume_p: " << volume_p << "\nudk: " << (udk) <<
-      "\nbbk: " << (bbk) << "\nisbn: " << (isbn) << "\ncount: " << count << endl;
-
-//      cout << "---" << id << "------------------\nauthor: " << narrow(author) << "\ntitle: " << narrow(title) << "\npublisher: " << narrow(publisher) <<
-//      "\nyear:" << year << "\nvolume: " << volume << "\nyear_p: " << year_p << "\nvolume_p: " << volume_p << "\nudk: " << narrow(udk) <<
-//      "\nbbk: " << narrow(bbk) << "\nisbn: " << narrow(isbn) << "\ncount: " << count << endl;
-    }
-
-    ShellExecute(NULL, "open", "db_out.txt", NULL,NULL,1);
-*/
     return 1;
 }
-/**
-    {"Внутр.номер",       "id",        "", 1}, // 0
-    {"Автор, авторы",     "author",    "", 0}, // 1
-    {"Заглавие",          "title",     "", 0}, // 2
-    {"Издательство",      "publisher", "", 0}, // 3
-    {"Год издания",       "year",      "", 1}, // 4
-    {"Номер тома",        "volume",    "", 1}, // 5
-    {"Год (периодика)",   "year_p",    "", 1}, // 6
-    {"Номер (периодика)", "volume_p",  "", 1}, // 7
-    {"Жанр",              "genre",     "", 1}, // 8
-    {"УДК",               "udk",       "", 0}, // 9
-    {"ББК",               "bbk",       "", 0}, //10
-    {"ISBN/ISSN",         "isbn",      "", 0}  //11
-    */
 
 int  modePickReaders()  {
     string sql_query = makeReaderQuery();
@@ -542,42 +505,6 @@ int makeNewDatabase()
 {
     TestDatabase tdb;
     tdb.makeNewDatabase("LInSys.db");
-
-
-//    sqlite3pp::database db("LInSys.db");
-//
-//    db.execute("DROP TABLE IF EXISTS book;");
-//    for(int i=0; i<1000; i++) {
-//        db.execute(makeInsertBook(i));
-//    }
-//    db.execute("DROP TABLE IF EXISTS reader;");
-//    for(int i=0; i<100; i++) {
-//        db.execute(makeInsertReader(i));
-//    }
-//    db.execute("DROP TABLE IF EXISTS issue;");
-//    for(int i=0; i<200; i++) {
-//        db.execute(makeInsertIssue(i));
-//    }
-//    db.execute("DROP TABLE IF EXISTS user;");
-//    for(int i=0; i<100; i++) {
-//        db.execute(makeInsertUser(i));
-//    }
-//    db.execute("DROP TABLE IF EXISTS ticket;");
-//    for(int i=0; i<100; i++) {
-//        db.execute(makeInsertTicket(i));
-//    }
-//    db.execute("DROP TABLE IF EXISTS role;");
-//    db.execute("INSERT INTO role (descr) VALUES "
-//       "('библиотекарь'),"
-//       "('абонент'),"
-//       "('сисадмин'),"
-//       "('ученик'),"
-//       "('учитель');");
-
-//    db.execute("DROP TABLE IF EXISTS genre;");
-//    for(int i=0; i<100; i++) {
-//        db.execute(makeInsertGenre(i));
-//    }
 
 }
 

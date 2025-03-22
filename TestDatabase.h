@@ -1,14 +1,15 @@
 #ifndef TESTDATABASE_H_INCLUDED
 #define TESTDATABASE_H_INCLUDED
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <time.h>
-#include <string.h>
 
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <windows.h>
 
 using namespace std;
 
@@ -17,20 +18,24 @@ class TestDatabase
 {
 private:
     char buf[256];
+    string dbname;
+    string ofname;
+    vector<string> queryResult;
 
 public:
 
     TestDatabase(){
         srand(time(NULL));
+        dbname = "LInSys.db";
+        ofname = "db_out.txt";
     }
+    vector<string>& getQueryResult() { return queryResult; }
 
     // отладка: генерация целого числа в диапазоне
     int genInt(int min, int max);
 
     // отладка: строка с числом
     char* StrInt(char* s, int i);
-    //string StrInt(char* s, int i);
-    //string StrInt(string s, int i);
 
     // отладка: Генерация даты
     char* generateDate();
@@ -47,12 +52,11 @@ public:
     int  testPickBooks(string sql);
 
     // отладка: сохранить все данные в текстовый файл
-    void saveSqlToFile(char* fname);
-    void saveSqlBook  (char* fname);
-    void saveSqlReader(char* fname);
-    void saveSqlIssue (char* fname);
-    void saveSqlUser  (char* fname);
-    void saveSqlTicker(char* fname);
+    void saveSqlBook  (char* fname, int num);
+    void saveSqlReader(char* fname, int num);
+    void saveSqlIssue (char* fname, int num);
+    void saveSqlUser  (char* fname, int num);
+    void saveSqlTicker(char* fname, int num);
 
 };
 

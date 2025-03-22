@@ -1,6 +1,11 @@
 # Prerequisites
 *.d
 
+bin/
+obj/
+*.save
+*.db
+
 # Object files
 *.o
 *.ko
@@ -50,3 +55,4 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+db_out.txt

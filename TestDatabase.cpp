@@ -1,42 +1,31 @@
-#include <fstream>
-#include <windows.h>
-
+// Работа с базой данных
+//
 #include "TestDatabase.h"
 
 #include "sqlite3pp.h"
 #include "sqlite3ppext.h"
-
 
 // =========================================================
 
 // ---------------------------------------------------------
 // Создание таблиц
 //
-//char *sqlDropAllTables =
-//  "DROP TABLE IF EXISTS book;"
-//  "DROP TABLE IF EXISTS reader;"
-//  "DROP TABLE IF EXISTS issue;"
-//  "DROP TABLE IF EXISTS user;"
-//  "DROP TABLE IF EXISTS ticket;"
-//  "DROP TABLE IF EXISTS role;"
-//  "DROP TABLE IF EXISTS genre;";
-
 // ---------------------------------------------------------
 // Создание таблицы book
 char *sqlCreateTableBook =
   "CREATE TABLE IF NOT EXISTS book("
   "id INTEGER PRIMARY KEY AUTOINCREMENT, "
   "author TEXT NOT NULL, " // -- Автор
-  "title TEXT NOT NULL, " // -- Название
+  "title  TEXT NOT NULL, " // -- Название
   "publisher TEXT NULL, " // -- Издательство
-  "year INTEGER NULL, " // -- Год издания
-  "volume  INTEGER NULL, " //-- Номер тома
+  "year   INTEGER NULL, " // -- Год издания
+  "volume INTEGER NULL, " //-- Номер тома
   "year_p INTEGER NULL, " //-- Год (периодика)
   "volume_p INTEGER NULL, " // -- Номер (периодика)
-  "genre TEXT NULL, " //-- жанр
-  "UDK TEXT NULL, " // -- УДК
-  "BBK TEXT NULL, " // -- ББК
-  "ISBN TEXT NULL);";
+  "genre  TEXT NULL, " //-- жанр
+  "UDK    TEXT NULL, " // -- УДК
+  "BBK    TEXT NULL, " // -- ББК
+  "ISBN   TEXT NULL);";
 
 // ---------------------------------------------------------
 // Создание таблицы reader
@@ -46,13 +35,13 @@ char *sqlCreateTableReader =
   "user_id INTEGER NOT NULL, " // -- Тип пользователя + login + psw
   "ticket_id INTEGER NOT NULL, " // -- Library card - читательский билет
   "fname TEXT NOT NULL, " // -- First name - Имя
-  "mname TEXT NOT NULL, " // -- Middle name - Отчество
+  "mname TEXT     NULL, " // -- Middle name - Отчество
   "lname TEXT NOT NULL, " // -- Last name - Фамилия
   "date_birth TEXT NULL, " // -- Дата рождения
-  "passport TEXT NULL, " // -- Номер паспорта
-  "address TEXT NULL, " // -- Адрес
-  "phone TEXT NULL, " // -- Телефон
-  "email TEXT NULL);"; // -- Почта
+  "passport   TEXT NULL, " // -- Номер паспорта
+  "address    TEXT NULL, " // -- Адрес
+  "phone      TEXT NULL, " // -- Телефон
+  "email      TEXT NULL);"; // -- Почта
 
 // ---------------------------------------------------------
 // Создание таблицы «Заказ» = issue
@@ -62,9 +51,9 @@ char *sqlCreateTableIssue =
   "reader_id INTEGER NOT NULL, " // -- Код Читателя
   "book_id   INTEGER NOT NULL, " // -- Код Экземпляра
   "date_order   TEXT NOT NULL, " // -- Дата заказа
-  "date_issue   TEXT NOT NULL, " // -- Дата выдачи
-  "date_backw   TEXT NOT NULL, " // -- Дата возврата
-  "returned  INTEGER NOT NULL);";// -- Возвращена
+  "date_issue   TEXT     NULL, " // -- Дата выдачи
+  "date_backw   TEXT     NULL, " // -- Дата возврата
+  "returned  INTEGER     NULL);";// -- Возвращена
 
 // ---------------------------------------------------------
 // Создание таблицы «Пользователь» = user
@@ -82,15 +71,15 @@ char *sqlCreateTableTicket =
   "CREATE TABLE IF NOT EXISTS ticket("
   "id INTEGER PRIMARY KEY AUTOINCREMENT, "
   "number  INTEGER NOT NULL, " // -- Номер билета
-  "date_in  TEXT NOT NULL, "   // -- Дата регистрации
-  "date_out TEXT NOT NULL);";  // -- Дата выбытия
+  "date_in    TEXT NOT NULL, " // -- Дата регистрации
+  "date_out   TEXT     NULL);";// -- Дата выбытия
 
 // ---------------------------------------------------------
 // Создание таблицы «Роль» = role: сисадмин, библиотекарь, абонент, учитель, ученик
 char *sqlCreateTableRole =
   "CREATE TABLE IF NOT EXISTS role("
   "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-  "[descr] TEXT NOT NULL);"; // -- Наименование
+  "descr TEXT NOT NULL);"; // -- Наименование
 
 // ---------------------------------------------------------
 // Создание таблицы «Жанр» = genre
@@ -236,7 +225,6 @@ char* TestDatabase::makeInsertIssue(int i)
         txt[5]  // 6 returned
     );
     return buf;
-
 }
 
 //  "INSERT INTO user (reader_id, role_id, login, password) "
@@ -278,7 +266,9 @@ char* TestDatabase::makeInsertTicket(int i)
 }
 
 // ---------------------------------------------------------
-
+// Создание БД с нуля:
+//    формирование и заполнение таблиц тестовыми данными
+//
 void TestDatabase::makeNewDatabase(char* dbname){
 
     sqlite3pp::database db(dbname);
@@ -320,76 +310,55 @@ void TestDatabase::makeNewDatabase(char* dbname){
 
 }
 
-
+// ---------------------------------------------------------
 // отладка: сохранить все данные в текстовый файл
-void TestDatabase::saveSqlToFile(char* fname){
-    FILE *fpDump;
-    if((fpDump=fopen(fname, "w"))==NULL) {
-//            putsxy(1,25,"He удается открыть файл для выгрузки данных");
-        return;
-    }
-//        putsxy(1,25,"Выгрузка данных");
-    for(int i=0; i<1000; i++)
-    {
-//        fprintf(fpDump,"%s\n", makeInsertBook(i));
-    }
-//        putsxy(1,26,"Выгрузка завершена. Нажмите любую клавишу");
-//        _getch();
-    fclose(fpDump);
-}
 
-void TestDatabase::saveSqlBook(char* fname){
+void TestDatabase::saveSqlBook(char* fname, int num){
     FILE *fpDump;
-
     if((fpDump=fopen(fname, "w"))==NULL) {
         return;
     }
-    for(int i=0; i<1000; i++)
-    {
+    for(int i=0; i<num; i++) {
         fprintf(fpDump,"%s\n", makeInsertBook(i));
     }
     fclose(fpDump);
 }
-void TestDatabase::saveSqlReader(char* fname){
+void TestDatabase::saveSqlReader(char* fname, int num){
     FILE *fpDump;
     if((fpDump=fopen(fname, "w"))==NULL) {
         return;
     }
-    for(int i=0; i<100; i++)
-    {
+    for(int i=0; i<num; i++) {
         fprintf(fpDump,"%s\n", makeInsertReader(i));
     }
     fclose(fpDump);
 }
-void TestDatabase::saveSqlIssue(char* fname){
+void TestDatabase::saveSqlIssue(char* fname, int num){
     FILE *fpDump;
     if((fpDump=fopen(fname, "w"))==NULL) {
         return;
     }
-    for(int i=0; i<50; i++)
-    {
+    for(int i=0; i<num; i++) {
         fprintf(fpDump,"%s\n", makeInsertIssue(i));
     }
     fclose(fpDump);
 }
-void TestDatabase::saveSqlUser(char* fname){
+void TestDatabase::saveSqlUser(char* fname, int num){
     FILE *fpDump;
     if((fpDump=fopen(fname, "w"))==NULL) {
         return;
     }
-    for(int i=0; i<50; i++)
-    {
+    for(int i=0; i<num; i++) {
         fprintf(fpDump,"%s\n", makeInsertUser(i));
     }
     fclose(fpDump);
 }
-void TestDatabase::saveSqlTicker(char* fname){
+void TestDatabase::saveSqlTicker(char* fname, int num){
     FILE *fpDump;
     if((fpDump=fopen(fname, "w"))==NULL) {
         return;
     }
-    for(int i=0; i<50; i++)
-    {
+    for(int i=0; i<num; i++) {
         fprintf(fpDump,"%s\n", makeInsertTicket(i));
     }
     fclose(fpDump);
@@ -424,40 +393,42 @@ char* TestDatabase::generateDate(){
 // ---------------------------------------------------------
 
 int  TestDatabase::testPickBooks(string sql)  {
-    //string sql = madeBookWhere();
-    //putsxy( 8,26, (char*)sql.c_str());
 
-    sqlite3pp::database db("LInSys.db");
+    sqlite3pp::database db(dbname.c_str());//"LInSys.db"
+    ofstream outf(ofname);//"db_out.txt"
 
-    ofstream outf("db_out.txt");
 	// Если мы не можем открыть этот файл для записи данных в него
-	if (!outf)
-	{
-		// То выводим сообщение об ошибке и выполняем exit()
-		cerr << "Uh oh, SomeText.txt could not be opened for writing!" << endl;
-		exit(1);
+	if (!outf) {
+		cerr << "Упс... не могу открыть файл " << ofname << " для записи" << endl;
+		return 1;
 	}
+
+	queryResult.clear();
 
     sqlite3pp::query query(db, sql.c_str());
 
-    string id, author, title, publisher, year, volume, year_p, volume_p, udk, bbk, isbn, count;
+    string id, author, title, publisher, year, volume, year_p, volume_p, genre, udk, bbk, isbn, count;
     for (sqlite3pp::query::iterator i = query.begin(); i != query.end(); ++i) {
-      (*i).getter() >> id >> title >> author >> publisher >> year >> year_p >> volume >> volume_p >> udk >> bbk >> isbn >> count;
-
-      outf << "---" << id << "------------------\nauthor: " << author << "\ntitle: " << title << "\npublisher: " << publisher <<
-      "\nyear:" << year << "\nvolume: " << volume << "\nyear_p: " << year_p << "\nvolume_p: " << volume_p << "\nudk: " << udk <<
-      "\nbbk: " << bbk << "\nisbn: " << isbn << "\ncount: " << count << endl;
-
-      cout << "---" << id << "------------------\nauthor: " << (author) << "\ntitle: " << (title) << "\npublisher: " << (publisher) <<
-      "\nyear:" << year << "\nvolume: " << volume << "\nyear_p: " << year_p << "\nvolume_p: " << volume_p << "\nudk: " << (udk) <<
-      "\nbbk: " << (bbk) << "\nisbn: " << (isbn) << "\ncount: " << count << endl;
-
-//      cout << "---" << id << "------------------\nauthor: " << narrow(author) << "\ntitle: " << narrow(title) << "\npublisher: " << narrow(publisher) <<
-//      "\nyear:" << year << "\nvolume: " << volume << "\nyear_p: " << year_p << "\nvolume_p: " << volume_p << "\nudk: " << narrow(udk) <<
-//      "\nbbk: " << narrow(bbk) << "\nisbn: " << narrow(isbn) << "\ncount: " << count << endl;
+      (*i).getter() >> id >> author >> title >> publisher >> year >> volume
+                    >> year_p >> volume_p >> genre >> udk >> bbk >> isbn >> count;
+      queryResult.push_back("---"+id+"------------------");
+      queryResult.push_back("Автор: "+author);
+      queryResult.push_back("Название: "+title);
+      queryResult.push_back("Издательство: "+publisher);
+      queryResult.push_back("Год издания: "+year);
+      queryResult.push_back("Номер тома: "+volume);
+      queryResult.push_back("Год (периодика): "+year_p);
+      queryResult.push_back("Номер (периодика): "+volume_p);
+      queryResult.push_back("Жанр: "+genre);
+      queryResult.push_back("УДК: "+udk);
+      queryResult.push_back("ББК: "+bbk);
+      queryResult.push_back("ISBN: "+isbn);
+      //queryResult.push_back("Экземпляров: "+count);
     }
-
+    for (auto n : queryResult) {
+        outf << n << endl;
+        cout << n << endl;
+    }
     ShellExecute(NULL, "open", "db_out.txt", NULL,NULL,1);
-
-    return 1;
+    return 0;
 }

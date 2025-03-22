@@ -45,7 +45,7 @@
 1699713316 d:\workspace\codeblocks\librarycont01\headeronly_src\sqlite3ppext.ipp
 	<cstring>
 
-1742150643 source:d:\workspace\codeblocks\librarycont01\main.cpp
+1742173735 source:d:\workspace\codeblocks\librarycont01\main.cpp
 	<stdio.h>
 	<conio.h>
 	<ctype.h>
@@ -56,19 +56,18 @@
 	"sqlite3.h"
 	"TestDatabase.h"
 
-1742151715 source:d:\workspace\codeblocks\librarycont01\testdatabase.cpp
-	<fstream>
-	<windows.h>
+1742671720 source:d:\workspace\codeblocks\librarycont01\testdatabase.cpp
 	"TestDatabase.h"
 	"sqlite3pp.h"
 	"sqlite3ppext.h"
 
-1742149993 d:\workspace\codeblocks\librarycont01\testdatabase.h
-	<stdio.h>
-	<stdlib.h>
+1742671832 d:\workspace\codeblocks\librarycont01\testdatabase.h
 	<time.h>
-	<string.h>
 	<string>
 	<sstream>
 	<iostream>
+	<fstream>
+	<string>
+	<vector>
+	<windows.h>
 
