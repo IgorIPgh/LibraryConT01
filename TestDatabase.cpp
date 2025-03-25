@@ -1,11 +1,16 @@
 // Работа с базой данных
 //
+
+#include "logger.h"
 #include "TestDatabase.h"
 
 #include "sqlite3pp.h"
 #include "sqlite3ppext.h"
 
+
 // =========================================================
+
+Logger logger("logfile.txt"); // Create logger instance
 
 // ---------------------------------------------------------
 // Создание таблиц
@@ -269,57 +274,68 @@ char* TestDatabase::makeInsertTicket(int i)
 // Создание БД с нуля:
 //    формирование и заполнение таблиц тестовыми данными
 //
-void TestDatabase::makeNewDatabase(char* dbname){
+void TestDatabase::makeNewDatabase(char* dbname)
+{
+    try
+    {
+        sqlite3pp::database dbase(dbname);
+        {
+            sqlite3pp::transaction xct(dbase);
+            {
+                dbase.execute("DROP TABLE IF EXISTS book;");
+                dbase.execute(sqlCreateTableBook);
+                for(int i=0; i<1000; i++){
+                    dbase.execute(makeInsertBook(i));
+                }
+                logger.log(LOGlevel::INF, "таблица book создана и заполнена");
 
-    sqlite3pp::database dbase(dbname);
+                dbase.execute("DROP TABLE IF EXISTS reader;");
+                dbase.execute(sqlCreateTableReader);
+                for(int i=0; i<100; i++){
+                    dbase.execute(makeInsertReader(i));
+                }
+                logger.log(LOGlevel::INF, "таблица reader создана и заполнена");
 
-    dbase.execute("DROP TABLE IF EXISTS book;");
-    dbase.execute(sqlCreateTableBook);
-    for(int i=0; i<1000; i++) {
-        dbase.execute(makeInsertBook(i));
+                dbase.execute("DROP TABLE IF EXISTS issue;");
+                dbase.execute(sqlCreateTableIssue);
+                for(int i=0; i<200; i++){
+                    dbase.execute(makeInsertIssue(i));
+                }
+                logger.log(LOGlevel::INF, "таблица issue создана и заполнена");
+
+                dbase.execute("DROP TABLE IF EXISTS user;");
+                dbase.execute(sqlCreateTableUser);
+                for(int i=0; i<100; i++){
+                    dbase.execute(makeInsertUser(i));
+                }
+                logger.log(LOGlevel::INF, "таблица user создана и заполнена");
+
+                dbase.execute("DROP TABLE IF EXISTS ticket;");
+                dbase.execute(sqlCreateTableTicket);
+                for(int i=0; i<100; i++){
+                    dbase.execute(makeInsertTicket(i));
+                }
+                logger.log(LOGlevel::INF, "таблица ticket создана и заполнена");
+
+                dbase.execute("DROP TABLE IF EXISTS role;");
+                dbase.execute(sqlCreateTableRole);
+                dbase.execute(sqlInsertDataRole);
+                logger.log(LOGlevel::INF, "таблица role создана и заполнена");
+
+                dbase.execute("DROP TABLE IF EXISTS genre;");
+                dbase.execute(sqlCreateTableGenre);
+                logger.log(LOGlevel::INF, "таблица genre создана, не заполнена");
+                //for(int i=0; i<10; i++) {
+                //    dbase.execute(makeInsertGenre(i));
+                //}
+            }
+            xct.commit();
+        }
     }
-    cerr << "book - Ok" << endl;
-/*
-    dbase.execute("DROP TABLE IF EXISTS reader;");
-    dbase.execute(sqlCreateTableReader);
-    for(int i=0; i<100; i++) {
-        dbase.execute(makeInsertReader(i));
+    catch (exception & ex)
+    {
+        logger.log(LOGlevel::ERR, ex.what());
     }
-    cerr << "reader - Ok" << endl;
-
-    dbase.execute("DROP TABLE IF EXISTS issue;");
-    dbase.execute(sqlCreateTableIssue);
-    for(int i=0; i<200; i++) {
-        dbase.execute(makeInsertIssue(i));
-    }
-    cerr << "issue - Ok" << endl;
-
-    dbase.execute("DROP TABLE IF EXISTS user;");
-    dbase.execute(sqlCreateTableUser);
-    for(int i=0; i<100; i++) {
-        dbase.execute(makeInsertUser(i));
-    }
-    cerr << "user - Ok" << endl;
-
-    dbase.execute("DROP TABLE IF EXISTS ticket;");
-    dbase.execute(sqlCreateTableTicket);
-    for(int i=0; i<100; i++) {
-        dbase.execute(makeInsertTicket(i));
-    }
-    cerr << "ticket - Ok" << endl;
-
-    dbase.execute("DROP TABLE IF EXISTS role;");
-    dbase.execute(sqlCreateTableRole);
-    dbase.execute(sqlInsertDataRole);
-    cerr << "role - Ok" << endl;
-
-    dbase.execute("DROP TABLE IF EXISTS genre;");
-    dbase.execute(sqlCreateTableGenre);
-    cerr << "genre - Ok" << endl;
-//    for(int i=0; i<100; i++) {
-//        dbase.execute(makeInsertGenre(i));
-//    }
-*/
 }
 
 // ---------------------------------------------------------
@@ -412,48 +428,64 @@ char* TestDatabase::generateDate(){
 
 int  TestDatabase::testPickBooks(string sql)  {
 
-    ofstream outf(ofname);
+    int records=0;
 
-	// Если мы не можем открыть этот файл для записи данных в него
-	if (!outf) {
-		cerr << "Упс... не могу открыть файл " << ofname << " для записи" << endl;
-		return 1;
-	}
+    try {
+        sqlite3pp::database db("test.db");
+        {
+            sqlite3pp::transaction xct(db);
+            {
+                sqlite3pp::database dbase(dbname.c_str());
 
-    sqlite3pp::database dbase(dbname.c_str());
+                queryResult.clear();
 
-	queryResult.clear();
+                sqlite3pp::query query(dbase, sql.c_str());
 
-    sqlite3pp::query query(dbase, sql.c_str());
+                string id, author, title, publisher, year, volume, year_p, volume_p, genre, udk, bbk, isbn, count;
 
-    string id, author, title, publisher, year, volume, year_p, volume_p, genre, udk, bbk, isbn, count;
+                for (sqlite3pp::query::iterator i = query.begin(); i != query.end(); ++i) {
+                    string bookinfo;
+                    (*i).getter() >> id >> author >> title >> publisher >> year >> volume
+                                >> year_p >> volume_p >> genre >> udk >> bbk >> isbn >> count;
+                    bookinfo.append("---"+id+"------------------"+"\r\n");
+                    bookinfo.append("Автор: "+author+"\r\n");
+                    bookinfo.append("Название: "+title+"\r\n");
+                    bookinfo.append("Издательство: "+publisher+"\r\n");
+                    bookinfo.append("Год издания: "+year+"\r\n");
+                    bookinfo.append("Номер тома: "+volume+"\r\n");
+                    bookinfo.append("Год (периодика): "+year_p+"\r\n");
+                    bookinfo.append("Номер (периодика): "+volume_p+"\r\n");
+                    bookinfo.append("Жанр: "+genre+"\r\n");
+                    bookinfo.append("УДК: "+udk+"\r\n");
+                    bookinfo.append("ББК: "+bbk+"\r\n");
+                    bookinfo.append("ISBN: "+isbn+"\r\n");
+                    //bookinfo.append("Экземпляров: "+count+"\r\n");
+                    queryResult.push_back(bookinfo);
+                    records++;
+                }
+            }
+        }
+        db.disconnect();
 
-    int records = 0;
-
-    for (sqlite3pp::query::iterator i = query.begin(); i != query.end(); ++i) {
-        string bookinfo;
-        (*i).getter() >> id >> author >> title >> publisher >> year >> volume
-                    >> year_p >> volume_p >> genre >> udk >> bbk >> isbn >> count;
-        bookinfo.append("---"+id+"------------------"+"\r\n");
-        bookinfo.append("Автор: "+author+"\r\n");
-        bookinfo.append("Название: "+title+"\r\n");
-        bookinfo.append("Издательство: "+publisher+"\r\n");
-        bookinfo.append("Год издания: "+year+"\r\n");
-        bookinfo.append("Номер тома: "+volume+"\r\n");
-        bookinfo.append("Год (периодика): "+year_p+"\r\n");
-        bookinfo.append("Номер (периодика): "+volume_p+"\r\n");
-        bookinfo.append("Жанр: "+genre+"\r\n");
-        bookinfo.append("УДК: "+udk+"\r\n");
-        bookinfo.append("ББК: "+bbk+"\r\n");
-        bookinfo.append("ISBN: "+isbn+"\r\n");
-        //queryResult.append("Экземпляров: "+count+"\r\n");
-        queryResult.push_back(bookinfo);
-        records++;
+    } catch (exception & ex) {
+        //Logger logger("logfile.txt"); // Create logger instance
+        logger.log(LOGlevel::ERR, ex.what());
     }
-    for (auto n : queryResult) {
-        outf << n << endl;
-    }
+
+    ////////////////////////////////////////////////////////
     // только для отладки:
+  	// Если мы не можем открыть этот файл для записи данных в него
+    //  ofstream outf(ofname);
+    //	if (!outf) {
+    //		cerr << "Упс... не могу открыть файл " << ofname << " для записи" << endl;
+    //		return -1;
+    //	}
+    //
+    //for (auto n : queryResult) {
+    //    outf << n << endl;
+    //}
     //ShellExecute(NULL, "open", "db_out.txt", NULL,NULL,1);
+    ////////////////////////////////////////////////////////
+
     return records;
 }

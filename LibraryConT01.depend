@@ -1,0 +1,70 @@
+# depslib dependency file v1.0
+1742833798 source:d:\workspace\codeblocks\librarycont01\testdatabase.cpp
+	"TestDatabase.h"
+	"sqlite3pp.h"
+	"sqlite3ppext.h"
+
+1742756934 d:\workspace\codeblocks\librarycont01\testdatabase.h
+	<time.h>
+	<string>
+	<sstream>
+	<iostream>
+	<fstream>
+	<string>
+	<vector>
+	<windows.h>
+
+1742143011 d:\workspace\codeblocks\librarycont01\headeronly_src\sqlite3pp.h
+	<functional>
+	<iterator>
+	<stdexcept>
+	<string>
+	<tuple>
+	<sqlite3ext.h>
+	<sqlite3.h>
+	"sqlite3pp.ipp"
+
+1736868136 c:\development\sqlite\sqlite3ext.h
+	"sqlite3.h"
+
+1736868148 c:\development\sqlite\sqlite3.h
+	<stdarg.h>
+
+1699713316 d:\workspace\codeblocks\librarycont01\headeronly_src\sqlite3pp.ipp
+	<cstring>
+	<memory>
+
+1699713316 d:\workspace\codeblocks\librarycont01\headeronly_src\sqlite3ppext.h
+	<cstddef>
+	<map>
+	<memory>
+	<tuple>
+	<type_traits>
+	<utility>
+	"sqlite3pp.h"
+	"sqlite3ppext.ipp"
+
+1699713316 d:\workspace\codeblocks\librarycont01\headeronly_src\sqlite3ppext.ipp
+	<cstring>
+
+1739539624 source:d:\workspace\codeblocks\librarycont01\library.rc
+
+1742893430 source:d:\workspace\codeblocks\librarycont01\main.cpp
+	<stdio.h>
+	<conio.h>
+	<ctype.h>
+	<string.h>
+	<windows.h>
+	<locale.h>
+	<iostream>
+	<fstream>
+	"sqlite3.h"
+	"coniow.h"
+	"TestDatabase.h"
+
+1654521894 c:\development\coniow\coniow.h
+	<stddef.h>
+	"keys_n_colors.h"
+
+1654513050 c:\development\coniow\keys_n_colors.h
+
