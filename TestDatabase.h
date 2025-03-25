@@ -21,6 +21,7 @@ private:
     string dbname;
     string ofname;
     vector<string> queryResult;
+    //sqlite3pp::database &dbase;
 
 public:
 
@@ -32,7 +33,7 @@ public:
     vector<string>& getQueryResult() { return queryResult; }
 
     // отладка: генерация целого числа в диапазоне
-    int genInt(int min, int max);
+    char* genInt(int min, int max);
 
     // отладка: строка с числом
     char* StrInt(char* s, int i);

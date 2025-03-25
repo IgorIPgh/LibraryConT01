@@ -31,13 +31,15 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
-			<Add option="-finput-charset=CP1251 -fexec-charset=CP1251" />
+			<Add directory="C:/development/coniow" />
 			<Add directory="C:/development/SQLite" />
 			<Add directory="headeronly_src" />
 		</Compiler>
 		<Linker>
 			<Add library="libsqlite3.a" />
+			<Add library="libconio2.a" />
 			<Add directory="C:/development/SQLite" />
+			<Add directory="C:/development/coniow" />
 		</Linker>
 		<Unit filename="TestDatabase.cpp" />
 		<Unit filename="TestDatabase.h" />
