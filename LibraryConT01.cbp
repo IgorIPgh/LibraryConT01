@@ -31,9 +31,9 @@
 		<Compiler>
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
-			<Add directory="C:/development/coniow" />
 			<Add directory="C:/development/SQLite" />
-			<Add directory="headeronly_src" />
+			<Add directory="C:/development/coniow" />
+			<Add directory="sqlite3pp" />
 		</Compiler>
 		<Linker>
 			<Add library="libsqlite3.a" />
@@ -43,13 +43,17 @@
 		</Linker>
 		<Unit filename="TestDatabase.cpp" />
 		<Unit filename="TestDatabase.h" />
-		<Unit filename="headeronly_src/sqlite3pp.h" />
-		<Unit filename="headeronly_src/sqlite3ppext.h" />
 		<Unit filename="library.ico" />
 		<Unit filename="library.rc">
 			<Option compilerVar="WINDRES" />
 		</Unit>
+		<Unit filename="logger.cpp" />
+		<Unit filename="logger.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="sqlite3pp/sqlite3pp.h" />
+		<Unit filename="sqlite3pp/sqlite3pp.ipp" />
+		<Unit filename="sqlite3pp/sqlite3ppext.h" />
+		<Unit filename="sqlite3pp/sqlite3ppext.ipp" />
 		<Extensions />
 	</Project>
 </CodeBlocks_project_file>

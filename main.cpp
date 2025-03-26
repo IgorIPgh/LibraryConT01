@@ -16,6 +16,10 @@
 // в соответствии с текущими выбранными цветами. Для перехода на новую строку
 // в функции cputs необходимо использовать пару - "\r\n"
 
+// void insline(void);
+// insline - вставляет пустую строку в позиции курсора текстового окна,
+// используя при этом текущий цвет фона. Все строки под пустой сдвигаются
+// на одну строку вниз, а последняя строка в текстовом окне пропадает.
 
 #include <stdio.h> // printf, scanf
 #include <conio.h> // _getch
@@ -29,6 +33,7 @@
 
 #include "sqlite3.h"
 #include "coniow.h"
+#include "logger.h"
 
 #include "TestDatabase.h"
 
@@ -41,13 +46,31 @@
 #define LINSYS_ROLES   2
 #define LINSYS_BOOKINLIBR 4
 
+#define putBorder1 drawborder( 5, 2,48,30,"-")
+#define putBorder2 drawborder(48, 2,95,30,"-")
+#define putBorder3 drawborder( 5,31,95,37,"-")
+
+#define clrWindow1 clrarea( 6, 3,47,29)
+#define clrWindow2 clrarea(49, 3,94,29)
+#define clrWindow3 clrarea( 6,32,94,36)
+
+#define setWindow0 window ( 1, 1,95,37)
+#define setWindow1 window ( 9, 4,47,29)
+#define setWindow2 window (50, 4,94,28)
+#define setWindow3 window ( 7,33,94,36)
+
+
 using namespace std;
+
+//Logger loggerM("logfile.txt"); // Create logger instance
+
+// ---------------------------------------------------------
 
 
 typedef struct EntityItem {
     string par; // наименование параметра
     string col; // наименование столбца
-    string vpar;// текст для поиска
+    string var;// текст для поиска
     int sd; // тип параметра: 0-текст, 1-цифра
 } entity;
 
@@ -132,10 +155,7 @@ entity ilArr[] = {
 // =========================================================
 // Объявление функций
 
-//void gotoxy(int x, int y);
 void putsxy(int x, int y, char* str);
-//void getsxy(char* txt, int x, int y, char* str);
-//void clearRows(int a, int b);
 void SetConsoleSize(int dx, int dy);
 void GetConsoleSize(int &dw, int &dh);
 
@@ -252,12 +272,11 @@ int handle224key(int& ind, int maxind) {
     return ind;
 }
 
-void handleBackspace(entity* arr, int searchInd){
-    int len = arr[searchInd].vpar.size();
-    if (len>0) {
-        arr[searchInd].vpar.erase(len-1,1);
-        putsxy(27+1+len,10+searchInd, " ");
-    }
+int handleBackspace(entity* arr, int searchInd){
+    int len = arr[searchInd].var.size();
+    if (len>0)
+    arr[searchInd].var.erase(len-1,1);
+    return len;
 }
 
 // =========================================================
@@ -266,15 +285,15 @@ int main()
 {
     SetConsoleOutputCP(1251);
     SetConsoleCP(1251);
-    SetConsoleSize(99, 37); // 65, 30 / 120, 50
+    SetConsoleSize(99, 37);
 
     textbackground(BLUE);
     textcolor(YELLOW);
     clrscr();
 
-    drawborder( 5,2,48,30,"-");
-    drawborder(48,2,95,30,"-");
-    drawborder(5,31,95,37,"-");
+    putBorder1;
+    putBorder2;
+    putBorder3;
 
     int rc = userControl();
     menuMain();
@@ -306,31 +325,36 @@ int  userControl()
 int menuMain()
 {
     while(1) {
-    clrarea( 6,3,47,29);
+    setWindow0; clrWindow1;  clrWindow2;
+    setWindow1;
 
-    putsxy( 7, 4, "**** Вас приветствует система ИнСиБ ****");
-    putsxy(19, 7, "РЕЖИМЫ РАБОТЫ");
-    putsxy( 7, 9, "========================================");
-    putsxy(15,11, "[1] Поиск литературы");  // menuGetBooks
-    putsxy(15,12, "[2] Заказ литературы");  // menuNewIssue
-    putsxy(15,13, "[3] Новый абонент");     // menuNewReader
-    putsxy(15,14, "[4] Поиск абонентов");   // menuGetReaders
-    putsxy(15,15, "[5] Заказы к выдаче");   // menuGetIssues
-    putsxy(15,16, "[6] Отчеты, справки");   // menuMakeReports
-    putsxy(15,17, "[7] Дополнителные режимы");// menuExtraModes
+    cputs("*** Вас приветствует система ИнСиБ ***\r\n"); // 4
+    cputs("\r\n\r\n"); // 5 6
+    cputs("           РЕЖИМЫ РАБОТЫ\r\n"); // 7
+    cputs("\r\n"); // 8
+    cputs("======================================\r\n"); // 9
+    cputs("\r\n"); // 10
+    cputs("      [1] Поиск литературы\r\n");  // menuGetBooks
+    cputs("      [2] Заказ литературы\r\n");  // menuNewIssue
+    cputs("      [3] Новый абонент\r\n");     // menuNewReader
+    cputs("      [4] Поиск абонентов\r\n");   // menuGetReaders
+    cputs("      [5] Заказы к выдаче\r\n");   // menuGetIssues
+    cputs("      [6] Отчеты, справки\r\n");   // menuMakeReports
+    cputs("      [7] Дополнителные режимы\r\n");// menuExtraModes
         // "[1] Список чит.билетов");       // menuGetTickers()
         // "[2] Список пользователей");     // menuGetUsers()
         // "[3] Ввод новой книги");         // menuNewBook()
         // "[4] Ввод нового чит.билета");   // menuNewTicker()
         // "[5] Ввод нового пользователя"); // menuNewUser()
-    putsxy(15,18, "[0] Конец работы");      // Exit
-    putsxy( 7,20, "========================================");
-    putsxy( 7,22, "Введите требуемый режим:");
+    cputs("      [0] Конец работы\r\n");      // Exit 18
+    cputs("\r\n"); // 19
+    cputs("======================================\r\n\r\n");// 20 21 22
+    cputs("Введите требуемый режим:"); // 23
 
     char choice = _getch();
     switch(choice)
     {
-    case '1': case 1: menuGetBooks();    break;
+    case '1': case 1: menuGetBooks(); break;
 //    case '2': case 2: menuNewIssue();    break;
 //    case '3': case 3: menuNewReader();   break;
     case '4': case 4: menuGetReaders();  break;
@@ -348,60 +372,58 @@ int menuMain()
 // Меню режима поиска литературы
 int  menuGetBooks()
 {
-    struct text_info ti;// для восстановления состояния экрана
-    gettextinfo(&ti);   // после возвращения из окна просмотра
+    setWindow0; clrWindow1;
+    setWindow1;
+    int parlen=0, ypos=7;
 
-    clrarea( 6,3,47,29);
+    cputs("**** РЕЖИМ  ПОИСКА ЛИТЕРАТУРЫ ****\r\n\r\n");// 4
+    cputs("Заполните требуемые поля и нажмите\r\n"); // 6
+    cputs("ENTER для поиска или\r\n"); // 7
+    cputs("ESC для возврата в основное меню\r\n"); // 7
+    cputs("==================================\r\n\r\n"); // 9
+    for (int i=1; i<=LINSYS_BOOKS; i++) {// 10 - 20
+        int n = biArr[i].par.size();
+        if (n>parlen) parlen = n;
+        cputs((char*)biArr[i].par.c_str()); cputs("\r\n");
+    }
+    cputs("                                  \r\n");// 20
+    cputs("==================================\r\n");// 21
+    cputs("Используйте стрелки вверх/вниз\r\n"); // 24
+    cputs("   для выбора параметра поиска\r\n"); // 25
+    cputs("по TAB переход: просмотр -- поиск\r\n"); // 26
 
-    putsxy( 9, 4, "**** РЕЖИМ  ПОИСКА ЛИТЕРАТУРЫ ****");
-    putsxy( 9, 6, "Заполните требуемые поля и нажмите");
-    putsxy( 9, 7, "ENTER для поиска или");
-    putsxy( 9, 8, "ESC для возврата в основное меню");
-    putsxy( 9, 9, "==================================");
-
-    for (int i=1; i<=LINSYS_BOOKS; i++)
-        putsxy(9,10+i, (char*)biArr[i].par.c_str());
-
-    putsxy( 9, 7+5+LINSYS_BOOKS, "==================================");// 21
-    putsxy( 9,24, "  Используйте стрелки вверх/вниз ");
-    putsxy( 9,25, "   для выбора параметра поиска");
-    putsxy( 9,26, "TAB для возврата из просмотра в поиск");
-
-    window (1,1,48,30);// Ok!
-
-    int searchInd = 1;
-    int choice = 0;
+    int searchInd=1, choice=0;
 
     while( 1 )
     {
-        putsxy(27,10+searchInd, "> ");
-        cprintf("%s", biArr[searchInd].vpar.c_str());
+        putsxy(parlen+2,7+searchInd, "> "); // 27
+        cprintf("%s", biArr[searchInd].var.c_str());
 
         int choice = getch();
 
-        if (!choice)// - Это расширенный код клавиш
+        if (!choice)// =0 - это расширенный код клавиш
         {
-            putsxy(27,10+searchInd, "  ");
+            putsxy(parlen+2,ypos+searchInd, "  ");
             handle224key(searchInd, LINSYS_BOOKS);
         }
         else // Обработка не-расширенных кодов клавиш
         {
             if (choice == KEY_ESC) {
-                clrarea( 6,3,47,29);// Ok!
-                // очистка после окончания поиска
+                // очистка данных после окончания поиска
                 for (int i=1; i<=LINSYS_BOOKS; i++)
-                    biArr[i].vpar.clear();
+                    biArr[i].var.clear();
                 return 0;
-            }
+            } else
+            if (choice == KEY_BACKSPACE) {
+                int len = handleBackspace(biArr, searchInd);
+                putsxy(parlen+3+len,ypos+searchInd, " ");
+            } else
             if (choice == KEY_ENTER) {
                 modePickBooks();
-                settextinfo(&ti);// восстановили параметры экрана
-            }
-            if (choice == KEY_BACKSPACE) {
-                handleBackspace(biArr, searchInd);
+                setWindow1;
             }
             else { // текст
-                biArr[searchInd].vpar += (char)choice;
+                biArr[searchInd].var += (char)choice;
             }
         }
     }
@@ -423,11 +445,12 @@ int  modePickBooks()  {
     int available = 0, ind = 0, maxind = records-2;;
     bool update = true;
     vector<string> queryResult = tdb.getQueryResult();
+
+    setWindow0; clrWindow2;
     gotoxy(9,28);
     cprintf("Всего найдено %d, из них в наличии %d", records, available);
 
-    clrarea(49,3,90,29);// Ok!
-    window (50,4,90,28);// Ok!
+    setWindow2;
 
     if (records == 0){
         return records;
@@ -483,10 +506,10 @@ string  makeBookQuery()  {
     string sql_query = "SELECT * FROM book "; //;
     string sql_where;
     for(int i=1; i<=LINSYS_BOOKS; i++) {
-        if (biArr[i].vpar.size()>0) {
+        if (biArr[i].var.size()>0) {
             sql_where.append(biArr[i].col);
             sql_where.append(biArr[i].sd?"=":" LIKE '%");
-            sql_where.append(biArr[i].vpar);
+            sql_where.append(biArr[i].var);
             sql_where.append(biArr[i].sd?" ":"%' ");
             sql_where.append("AND ");
         }
@@ -505,7 +528,7 @@ string  makeBookQuery()  {
 
 
 
-
+///===================================================================
 
 // -------------------------------------
 // Меню режима поиска абонентов
@@ -531,7 +554,7 @@ int  menuGetReaders()
     while( 1 ) {
 
         putsxy(27, 8+searchInd, "> ");
-        printf("%s", riArr[searchInd].vpar.c_str());
+        printf("%s", riArr[searchInd].var.c_str());
 
         int choice = getch();
 
@@ -550,7 +573,7 @@ int  menuGetReaders()
             //gotoxy(8,25); printf("Всего найдено %d, из них в наличии %d", 111, 99);
         }
         else {// текст
-            riArr[searchInd].vpar += (char)choice;
+            riArr[searchInd].var += (char)choice;
         }
     }
 }
@@ -564,10 +587,10 @@ int  modePickReaders()  {
 string  makeReaderQuery()  {
     string sql_query = "SELECT * FROM reader WHERE ";
     for(int i=1; i<=LINSYS_READERS; i++) {
-        if (riArr[i].vpar.size()>0) {
+        if (riArr[i].var.size()>0) {
             sql_query.append(riArr[i].col);
             sql_query.append(riArr[i].sd?"=":" LIKE '%");
-            sql_query.append(riArr[i].vpar);
+            sql_query.append(riArr[i].var);
             sql_query.append(riArr[i].sd?" ":"%' ");
             sql_query.append("AND ");
         }
