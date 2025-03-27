@@ -10,7 +10,7 @@
 
 // =========================================================
 
-Logger logger("logfile.txt"); // Create logger instance
+//Logger logger("logfile.txt"); // Create logger instance
 
 // ---------------------------------------------------------
 // Создание таблиц
@@ -276,6 +276,7 @@ char* TestDatabase::makeInsertTicket(int i)
 //
 void TestDatabase::makeNewDatabase(char* dbname)
 {
+    Logger logger("logfile.txt"); // Create logger instance
     try
     {
         sqlite3pp::database dbase(dbname);
@@ -431,12 +432,10 @@ int  TestDatabase::testPickBooks(string sql)  {
     int records=0;
 
     try {
-        sqlite3pp::database db("test.db");
+        sqlite3pp::database dbase(dbname.c_str());
         {
-            sqlite3pp::transaction xct(db);
+            sqlite3pp::transaction xct(dbase);
             {
-                sqlite3pp::database dbase(dbname.c_str());
-
                 queryResult.clear();
 
                 sqlite3pp::query query(dbase, sql.c_str());
@@ -465,10 +464,10 @@ int  TestDatabase::testPickBooks(string sql)  {
                 }
             }
         }
-        db.disconnect();
+        dbase.disconnect();
 
     } catch (exception & ex) {
-        //Logger logger("logfile.txt"); // Create logger instance
+        Logger logger("logfile.txt"); // Create logger instance
         logger.log(LOGlevel::ERR, ex.what());
     }
 
