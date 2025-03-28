@@ -606,7 +606,7 @@ int makeNewDatabase()
 {
     TestDatabase tdb;
     tdb.makeNewDatabase("LInSys.db");
-
+    return 0;
 }
 
 

@@ -37,12 +37,16 @@ public:
 
     // отладка: генерация целого числа в диапазоне
     char* genInt(int min, int max);
+    int   genint(int min, int max);
 
     // отладка: строка с числом
     char* StrInt(char* s, int i);
 
     // отладка: Генерация даты
-    char* generateDate();
+    char* generateDate(char* buf);
+
+    // отладка: получение даты, смещённой на days дней
+    char* addDaysToDate(char* date, int days);
 
     // отладка: формируем INSERT'ы
     char *makeInsertBook  (int i);

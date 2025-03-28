@@ -57,8 +57,7 @@ char *sqlCreateTableIssue =
   "book_id   INTEGER NOT NULL, " // -- Код Экземпляра
   "date_order   TEXT NOT NULL, " // -- Дата заказа
   "date_issue   TEXT     NULL, " // -- Дата выдачи
-  "date_backw   TEXT     NULL, " // -- Дата возврата
-  "returned  INTEGER     NULL);";// -- Возвращена
+  "date_backw   TEXT     NULL);";// -- Дата возврата
 
 // ---------------------------------------------------------
 // Создание таблицы «Пользователь» = user
@@ -104,8 +103,8 @@ char *sqlInsertDataReader =
   "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);";
 
 char *sqlInsertDataIssue =
-  "INSERT INTO issue (reader_id, book_id, date_order, date_issue, date_backw, returned) "
-  "VALUES (%s, %s, %s, %s, %s, %s);";
+  "INSERT INTO issue (reader_id, book_id, date_order, date_issue, date_backw) "
+  "VALUES (%s, %s, %s, %s, %s);";
 
 char *sqlInsertDataUser =
   "INSERT INTO user (reader_id, role_id, login, password) "
@@ -180,14 +179,14 @@ char* TestDatabase::makeInsertBook(int i) {
 //"VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);";
 char* TestDatabase::makeInsertReader(int i) {
     static char buf[512];
-    char txt[10][32];
+    char txt[10][32], ddt[14];
     //int id = genInt(1, 100);
     sprintf(txt[0], "%d", i+1);
     sprintf(txt[1], "%d", i+1);
     sprintf(txt[2], "'%s%03d'", "Имя",i);
     sprintf(txt[3], "'%s%03d'", "Отчество",i);
     sprintf(txt[4], "'%s%03d'", "Фамилия",i);
-    sprintf(txt[5], "'%s'", generateDate());
+    sprintf(txt[5], "'%s'", generateDate(ddt));
     sprintf(txt[6], "'%s%03d'", "Паспорт",i);
     sprintf(txt[7], "'%s%03d'", "Адр",i);
     sprintf(txt[8], "'%s%03d'", "Тел",i);
@@ -208,26 +207,42 @@ char* TestDatabase::makeInsertReader(int i) {
     return buf;
 }
 
-//  "INSERT INTO issue (reader_id, book_id, date_order, date_issue, date_backw, returned) "
-//  "VALUES (%d, %d, %s, %s, %s, %d);";
+//  "INSERT INTO issue (reader_id, book_id, date_order, date_issue, date_backw) "
+//  "VALUES (%s, %s, %s, %s, %s);";
 char* TestDatabase::makeInsertIssue(int i)
 {
-    static char buf[512];
-    char txt[6][32];
-    sprintf(txt[0], "%s", genInt(1,99));
-    sprintf(txt[1], "%s", genInt(1,999));
-    sprintf(txt[2], "'%s'", generateDate());
-    sprintf(txt[3], "'%s'", generateDate());
-    sprintf(txt[4], "'%s'", generateDate());
-    sprintf(txt[5], "%s", genInt(0,1));
+    static char buf[512] = {0};
+    char txt[5][32], ddt[14];
+    int val;
 
+    val = genint(1,99);
+    sprintf(txt[0], "%d", val);
+    val = genint(1,999);
+    sprintf(txt[1], "%d", val);
+    sprintf(txt[2], "'%s'", generateDate(ddt)); // заказ
+
+    if (i%3 == 0) // не выдана каждая третья
+    {   // если не выдана, то и не возвращена
+        strcpy(txt[3], "''");
+        strcpy(txt[4], "''");
+    }
+    else // заказ выдан
+    {
+        // выдача: сдвиг 0-4 дней от заказа / дата в ddt
+        val = genint(0,4);
+        sprintf(txt[3], "'%s'", addDaysToDate(ddt, val));
+        // возвращена каждая пятая книга
+        // возврат: сдвиг 1-14 дней от выдачи
+        val = genint(1,11);
+        const char* sday = (i%5==0 ? addDaysToDate(ddt, val) : "");
+        sprintf(txt[4], "'%s'", sday );
+    }
     sprintf(buf, sqlInsertDataIssue,
         txt[0], // 1 reader_id
         txt[1], // 2 book_id
         txt[2], // 3 date_order
         txt[3], // 4 date_issue
-        txt[4], // 5 date_backw
-        txt[5]  // 6 returned
+        txt[4]  // 5 date_backw
     );
     return buf;
 }
@@ -257,10 +272,10 @@ char* TestDatabase::makeInsertUser(int i)
 char* TestDatabase::makeInsertTicket(int i)
 {
     static char buf[512];
-    char txt[3][32];
+    char txt[3][32], ddt[14];
     sprintf(txt[0], "'%s%03d'", "Билет",i);
-    sprintf(txt[1], "'%s'", generateDate());
-    sprintf(txt[2], "'%s'", generateDate());
+    sprintf(txt[1], "'%s'", generateDate(ddt));
+    sprintf(txt[2], "'%s'", generateDate(ddt));
 
     sprintf(buf, sqlInsertDataTicket,
         txt[0], // 1 number
@@ -283,49 +298,50 @@ void TestDatabase::makeNewDatabase(char* dbname)
         {
             sqlite3pp::transaction xct(dbase);
             {
-                dbase.execute("DROP TABLE IF EXISTS book;");
-                dbase.execute(sqlCreateTableBook);
-                for(int i=0; i<1000; i++){
-                    dbase.execute(makeInsertBook(i));
-                }
-                logger.log(LOGlevel::INF, "таблица book создана и заполнена");
-
-                dbase.execute("DROP TABLE IF EXISTS reader;");
-                dbase.execute(sqlCreateTableReader);
-                for(int i=0; i<100; i++){
-                    dbase.execute(makeInsertReader(i));
-                }
-                logger.log(LOGlevel::INF, "таблица reader создана и заполнена");
+//                dbase.execute("DROP TABLE IF EXISTS book;");
+//                dbase.execute(sqlCreateTableBook);
+//                for(int i=0; i<1000; i++){
+//                    dbase.execute(makeInsertBook(i));
+//                }
+//                logger.log(LOGlevel::INF, "таблица book создана и заполнена");
+//
+//                dbase.execute("DROP TABLE IF EXISTS reader;");
+//                dbase.execute(sqlCreateTableReader);
+//                for(int i=0; i<100; i++){
+//                    dbase.execute(makeInsertReader(i));
+//                }
+//                logger.log(LOGlevel::INF, "таблица reader создана и заполнена");
 
                 dbase.execute("DROP TABLE IF EXISTS issue;");
                 dbase.execute(sqlCreateTableIssue);
                 for(int i=0; i<200; i++){
                     dbase.execute(makeInsertIssue(i));
+//                    makeInsertIssue(i);
                 }
                 logger.log(LOGlevel::INF, "таблица issue создана и заполнена");
 
-                dbase.execute("DROP TABLE IF EXISTS user;");
-                dbase.execute(sqlCreateTableUser);
-                for(int i=0; i<100; i++){
-                    dbase.execute(makeInsertUser(i));
-                }
-                logger.log(LOGlevel::INF, "таблица user создана и заполнена");
-
-                dbase.execute("DROP TABLE IF EXISTS ticket;");
-                dbase.execute(sqlCreateTableTicket);
-                for(int i=0; i<100; i++){
-                    dbase.execute(makeInsertTicket(i));
-                }
-                logger.log(LOGlevel::INF, "таблица ticket создана и заполнена");
-
-                dbase.execute("DROP TABLE IF EXISTS role;");
-                dbase.execute(sqlCreateTableRole);
-                dbase.execute(sqlInsertDataRole);
-                logger.log(LOGlevel::INF, "таблица role создана и заполнена");
-
-                dbase.execute("DROP TABLE IF EXISTS genre;");
-                dbase.execute(sqlCreateTableGenre);
-                logger.log(LOGlevel::INF, "таблица genre создана, не заполнена");
+//                dbase.execute("DROP TABLE IF EXISTS user;");
+//                dbase.execute(sqlCreateTableUser);
+//                for(int i=0; i<100; i++){
+//                    dbase.execute(makeInsertUser(i));
+//                }
+//                logger.log(LOGlevel::INF, "таблица user создана и заполнена");
+//
+//                dbase.execute("DROP TABLE IF EXISTS ticket;");
+//                dbase.execute(sqlCreateTableTicket);
+//                for(int i=0; i<100; i++){
+//                    dbase.execute(makeInsertTicket(i));
+//                }
+//                logger.log(LOGlevel::INF, "таблица ticket создана и заполнена");
+//
+//                dbase.execute("DROP TABLE IF EXISTS role;");
+//                dbase.execute(sqlCreateTableRole);
+//                dbase.execute(sqlInsertDataRole);
+//                logger.log(LOGlevel::INF, "таблица role создана и заполнена");
+//
+//                dbase.execute("DROP TABLE IF EXISTS genre;");
+//                dbase.execute(sqlCreateTableGenre);
+//                logger.log(LOGlevel::INF, "таблица genre создана, не заполнена");
                 //for(int i=0; i<10; i++) {
                 //    dbase.execute(makeInsertGenre(i));
                 //}
@@ -397,32 +413,44 @@ void TestDatabase::saveSqlTicker(char* fname, int num){
 // ---------------------------------------------------------
 
 // отладка: генерация целого числа в диапазоне
+int TestDatabase::genint(int min, int max) {
+    return min + rand()%(max-min+1);
+}
+
 char* TestDatabase::genInt(int min, int max) {
     static char text[10];
     sprintf(text, "%d", min + rand()%(max-min+1));
     return text;
 }
 // отладка:
-char* TestDatabase::StrInt(char* s, int i) {
-    static char buf[32];
-    sprintf(buf, "%s%03d", s, i);
+//char* TestDatabase::StrInt(char* s, int i) {
+//    static char buf[32];
+//    sprintf(buf, "%s%03d", s, i);
+//    return buf;
+//}
+// отладка: Генерация даты
+char* TestDatabase::generateDate(char* buf){
+    sprintf(buf, "%4d-%02d-%02d",
+        genint(2012, 2024), genint(1, 12), genint(1, 31));
     return buf;
 }
-// отладка: Генерация даты
-char* TestDatabase::generateDate(){
-//    char yea[5], mon[3], day[3];
-//    yea = genInt(2012, 2023);
-//    mon = genInt(1, 12);
-//    day = genInt(1, 31);
-//    sprintf(buf, "%04d-%02d-%02d", yea, mon, day);
-    sprintf(buf, "%s-%s-%s",
-            genInt(2012, 2023),
-            genInt(1, 12),
-            genInt(1, 31));
-    // time_t date = time(NULL);
-    // struct tm *u = localtime(&date);
-    // sprintf(buf, "%04d-%02d-%02d", u->tm_year+1900, u->tm_mon+1, u->tm_mday);
-    return buf;
+
+// отладка: получение даты, смещённой на days дней
+char* TestDatabase::addDaysToDate(char* date, int days)
+{
+   	int y, m, d;
+   	sscanf(date, "%d-%d-%d", &y, &m, &d);
+
+    struct tm u = {0}, *w;
+	u.tm_year = y - 1900;
+	u.tm_mon  = m - 1;
+	u.tm_mday = d + days;
+
+	time_t next = mktime(&u);
+	w = localtime(&next);
+	strftime(date, 12, "%Y-%m-%d", w);
+
+	return date;
 }
 
 // ---------------------------------------------------------
