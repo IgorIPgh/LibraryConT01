@@ -43,7 +43,7 @@ public:
     char* StrInt(char* s, int i);
 
     // отладка: Генерация даты
-    char* generateDate(char* buf);
+    char* generateDate(char* buf, int i1, int i2);
 
     // отладка: получение даты, смещённой на days дней
     char* addDaysToDate(char* date, int days);
@@ -57,7 +57,9 @@ public:
 
     // отладка: непосредственное создание БД
     void makeNewDatabase(char* dbname);
+    void createDatabaseSql(char* dbname);
     int  testPickBooks(string sql);
+
 
     // отладка: сохранить все данные в текстовый файл
     void saveSqlBook  (char* fname, int num);

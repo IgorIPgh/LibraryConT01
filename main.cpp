@@ -606,6 +606,14 @@ int makeNewDatabase()
 {
     TestDatabase tdb;
     tdb.makeNewDatabase("LInSys.db");
+
+//    tdb.createDatabaseSql("linsys.sql");
+//    saveSqlBook("insert_book.sql", 1000);
+//    saveSqlReader("insert_reader.sql", 200);
+//    saveSqlIssue("insert_issue.sql", 400);
+//    saveSqlUser("insert_user.sql", 200);
+//    saveSqlTicker("insert_ticket.sql", 200);
+
     return 0;
 }
 

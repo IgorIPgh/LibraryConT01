@@ -74,9 +74,9 @@ char *sqlCreateTableUser =
 char *sqlCreateTableTicket =
   "CREATE TABLE IF NOT EXISTS ticket("
   "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-  "number  INTEGER NOT NULL, " // -- Номер билета
-  "date_in    TEXT NOT NULL, " // -- Дата регистрации
-  "date_out   TEXT     NULL);";// -- Дата выбытия
+  "number   TEXT NOT NULL, " // -- Номер билета
+  "date_in  TEXT NOT NULL, " // -- Дата регистрации
+  "date_out TEXT     NULL);";// -- Дата выбытия
 
 // ---------------------------------------------------------
 // Создание таблицы «Роль» = role: сисадмин, библиотекарь, абонент, учитель, ученик
@@ -186,7 +186,7 @@ char* TestDatabase::makeInsertReader(int i) {
     sprintf(txt[2], "'%s%03d'", "Имя",i);
     sprintf(txt[3], "'%s%03d'", "Отчество",i);
     sprintf(txt[4], "'%s%03d'", "Фамилия",i);
-    sprintf(txt[5], "'%s'", generateDate(ddt));
+    sprintf(txt[5], "'%s'", generateDate(ddt,2020,2025));
     sprintf(txt[6], "'%s%03d'", "Паспорт",i);
     sprintf(txt[7], "'%s%03d'", "Адр",i);
     sprintf(txt[8], "'%s%03d'", "Тел",i);
@@ -219,7 +219,7 @@ char* TestDatabase::makeInsertIssue(int i)
     sprintf(txt[0], "%d", val);
     val = genint(1,999);
     sprintf(txt[1], "%d", val);
-    sprintf(txt[2], "'%s'", generateDate(ddt)); // заказ
+    sprintf(txt[2], "'%s'", generateDate(ddt,2020,2025)); // заказ
 
     if (i%3 == 0) // не выдана каждая третья
     {   // если не выдана, то и не возвращена
@@ -247,6 +247,28 @@ char* TestDatabase::makeInsertIssue(int i)
     return buf;
 }
 
+//  "INSERT INTO ticket (number, date_in, date_out) "
+//  "VALUES (%s, %s, %s);";
+char* TestDatabase::makeInsertTicket(int i)
+{
+    static char buf[512];
+    char txt[3][32], ddt[14];
+    sprintf(txt[0], "'%s%03d'", "Билет", i);
+    sprintf(txt[1], "'%s'", generateDate(ddt,2020,2025));
+
+    // каждый 25-й выписался из библиотеки
+    int val = genint(100,1000);
+    const char* sday = (i%25==0 ? addDaysToDate(ddt, val) : "");
+    sprintf(txt[2], "'%s'", sday );
+
+    sprintf(buf, sqlInsertDataTicket,
+        txt[0], // 1 number
+        txt[1], // 3 date_in
+        txt[2]  // 4 date_out
+    );
+    return buf;
+}
+
 //  "INSERT INTO user (reader_id, role_id, login, password) "
 //  "VALUES (%d, %d, %s, %s);";
 char* TestDatabase::makeInsertUser(int i)
@@ -263,24 +285,6 @@ char* TestDatabase::makeInsertUser(int i)
         txt[1], // 2 role_id
         txt[2], // 3 login
         txt[3]  // 4 password
-    );
-    return buf;
-}
-
-//  "INSERT INTO ticket (number, date_in, date_out) "
-//  "VALUES (%s, %s, %s);";
-char* TestDatabase::makeInsertTicket(int i)
-{
-    static char buf[512];
-    char txt[3][32], ddt[14];
-    sprintf(txt[0], "'%s%03d'", "Билет",i);
-    sprintf(txt[1], "'%s'", generateDate(ddt));
-    sprintf(txt[2], "'%s'", generateDate(ddt));
-
-    sprintf(buf, sqlInsertDataTicket,
-        txt[0], // 1 number
-        txt[1], // 3 date_in
-        txt[2]  // 4 date_out
     );
     return buf;
 }
@@ -307,32 +311,31 @@ void TestDatabase::makeNewDatabase(char* dbname)
 //
 //                dbase.execute("DROP TABLE IF EXISTS reader;");
 //                dbase.execute(sqlCreateTableReader);
-//                for(int i=0; i<100; i++){
+//                for(int i=0; i<200; i++){
 //                    dbase.execute(makeInsertReader(i));
 //                }
 //                logger.log(LOGlevel::INF, "таблица reader создана и заполнена");
-
-                dbase.execute("DROP TABLE IF EXISTS issue;");
-                dbase.execute(sqlCreateTableIssue);
-                for(int i=0; i<200; i++){
-                    dbase.execute(makeInsertIssue(i));
-//                    makeInsertIssue(i);
-                }
-                logger.log(LOGlevel::INF, "таблица issue создана и заполнена");
-
+//
+//                dbase.execute("DROP TABLE IF EXISTS issue;");
+//                dbase.execute(sqlCreateTableIssue);
+//                for(int i=0; i<400; i++){
+//                    dbase.execute(makeInsertIssue(i));//makeInsertIssue(i);
+//                }
+//                logger.log(LOGlevel::INF, "таблица issue создана и заполнена");
+//
 //                dbase.execute("DROP TABLE IF EXISTS user;");
 //                dbase.execute(sqlCreateTableUser);
-//                for(int i=0; i<100; i++){
+//                for(int i=0; i<200; i++){
 //                    dbase.execute(makeInsertUser(i));
 //                }
 //                logger.log(LOGlevel::INF, "таблица user создана и заполнена");
 //
-//                dbase.execute("DROP TABLE IF EXISTS ticket;");
-//                dbase.execute(sqlCreateTableTicket);
-//                for(int i=0; i<100; i++){
-//                    dbase.execute(makeInsertTicket(i));
-//                }
-//                logger.log(LOGlevel::INF, "таблица ticket создана и заполнена");
+                dbase.execute("DROP TABLE IF EXISTS ticket;");
+                dbase.execute(sqlCreateTableTicket);
+                for(int i=0; i<200; i++){
+                    dbase.execute(makeInsertTicket(i));
+                }
+                logger.log(LOGlevel::INF, "таблица ticket создана и заполнена");
 //
 //                dbase.execute("DROP TABLE IF EXISTS role;");
 //                dbase.execute(sqlCreateTableRole);
@@ -354,6 +357,53 @@ void TestDatabase::makeNewDatabase(char* dbname)
         logger.log(LOGlevel::ERR, ex.what());
     }
 }
+
+
+void TestDatabase::createDatabaseSql(char* fname)
+{
+    Logger logger("logfile.txt"); // Create logger instance
+    ofstream out(fname, ios::out);
+
+    if (!out.is_open()) {
+        logger.log(LOGlevel::INF, "ошибка открытия файла");
+        return;
+    }
+
+    out << "DROP TABLE book;" << endl;
+    out << "DROP TABLE reader;" << endl;
+    out << "DROP TABLE issue;" << endl;
+    out << "DROP TABLE user;" << endl;
+    out << "DROP TABLE ticket;" << endl;
+    out << "DROP TABLE role;" << endl;
+    out << "DROP TABLE genre;" << endl;
+    logger.log(LOGlevel::INF, "сформированы скрипты для удаления таблиц");
+
+    out << sqlCreateTableBook << endl;
+    out << sqlCreateTableReader << endl;
+    out << sqlCreateTableIssue << endl;
+    out << sqlCreateTableUser << endl;
+    out << sqlCreateTableTicket << endl;
+    out << sqlCreateTableRole << endl;
+    out << sqlCreateTableGenre << endl;
+    logger.log(LOGlevel::INF, "сформированы скрипты для создания таблиц");
+
+    for(int i=0; i<1000; i++)
+        out << makeInsertBook(i) << endl;
+    for(int i=0; i<200; i++)
+        out << makeInsertReader(i) << endl;
+    for(int i=0; i<400; i++)
+        out << makeInsertIssue(i) << endl;
+    for(int i=0; i<200; i++)
+        out << makeInsertUser(i) << endl;
+    for(int i=0; i<200; i++)
+        out << makeInsertTicket(i) << endl;
+    out << sqlInsertDataRole << endl;
+    logger.log(LOGlevel::INF, "сформированы данные для загрузки");
+
+    out.close();
+}
+
+
 
 // ---------------------------------------------------------
 // отладка: сохранить все данные в текстовый файл
@@ -422,16 +472,11 @@ char* TestDatabase::genInt(int min, int max) {
     sprintf(text, "%d", min + rand()%(max-min+1));
     return text;
 }
-// отладка:
-//char* TestDatabase::StrInt(char* s, int i) {
-//    static char buf[32];
-//    sprintf(buf, "%s%03d", s, i);
-//    return buf;
-//}
+
 // отладка: Генерация даты
-char* TestDatabase::generateDate(char* buf){
+char* TestDatabase::generateDate(char* buf, int i1, int i2){
     sprintf(buf, "%4d-%02d-%02d",
-        genint(2012, 2024), genint(1, 12), genint(1, 31));
+        genint(i1, i2), genint(1, 12), genint(1, 31));
     return buf;
 }
 
