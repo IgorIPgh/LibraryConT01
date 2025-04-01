@@ -3,8 +3,12 @@
 
 bin/
 obj/
-*.save
 *.db
+*.save
+*.depend
+db_out.txt
+linsys.sql
+logfile.txt
 
 # Object files
 *.o
@@ -55,4 +59,3 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
-db_out.txt

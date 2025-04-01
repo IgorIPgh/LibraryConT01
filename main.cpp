@@ -1,3 +1,4 @@
+////////////////////////////////////////////////////////////////////////////////
 // Наименование Системы – «Информационная система БИБЛИОТЕКА».
 // Краткое наименование - «ИнСиБ»
 //
@@ -35,7 +36,7 @@
 #include "coniow.h"
 #include "logger.h"
 
-#include "TestDatabase.h"
+#include "LinsysDatabase.h"
 
 #define ESC 27
 #define LINSYS_BOOKS   11
@@ -59,6 +60,7 @@
 #define setWindow2 window (50, 4,94,28)
 #define setWindow3 window ( 7,33,94,36)
 
+#define maxWin2H 24
 
 using namespace std;
 
@@ -67,12 +69,12 @@ using namespace std;
 // ---------------------------------------------------------
 
 
-typedef struct EntityItem {
-    string par; // наименование параметра
-    string col; // наименование столбца
-    string var;// текст для поиска
-    int sd; // тип параметра: 0-текст, 1-цифра
-} entity;
+//typedef struct EntityItem {
+//    string par; // наименование параметра
+//    string col; // наименование столбца
+//    string var;// текст для поиска
+//    int sd; // тип параметра: 0-текст, 1-цифра
+//} entity;
 
 
 //Сущность Entity «Элемент» = book
@@ -136,7 +138,7 @@ entity uiArr[] = {
 };
 
 //Сущность «Роль» = mission / role
-//('библиотекарь', 'абонент', 'ученик', 'учитель', 'сисадмин'
+//('сисадмин', 'библиотекарь', 'абонент', 'учитель', 'ученик'
 entity miArr[] = {
     {"Внутр.номер",  "id",    "", 1}, // 0
     {"Тип абонента", "descr", "", 0}  // 1
@@ -148,6 +150,16 @@ entity ilArr[] = {
     {"Код элемента хранения", "book_id",   "", 1}, // 1
     {"Общее количество",      "count_al",  "", 1}, // 2
     {"Текущее количество",    "count_cur", "", 1}  // 3
+};
+
+//Сущность «Отчет» = report
+entity irArr[] = {
+    {"", "", "", 0}, // 0
+    {"Список долгов читателей(интервал IDs)","","", 6}, // 1  [id1 .. idN или все читатели]
+    {"Регистрация читателей  (интервал дат)","","", 4}, // 2  [с .. по .. или все читатели]
+    {"Список выданных книг   (интервал дат)","","", 6}, // 3  [id1 .. idN или все читатели]
+    {"Список свободных книг",  "", "", 6}, // 4 -
+    {"Статистика заказов",     "", "",24}  // 5 -
 };
 
 
@@ -163,11 +175,11 @@ int  userControl();
 int  menuMain();
 
 // ---
-int  menuGetBooks();
-int  menuGetReaders();
-int  menuGetIssues();
-int  menuGetTickers();
-int  menuGetUsers();
+int  menuSearchBooks();
+int  menuSearchReaders();
+int  menuSearchIssues();
+int  menuSearchTickers();
+int  menuSearchUsers();
 
 int  menuNewBook();
 int  menuNewReader();
@@ -179,22 +191,15 @@ int  menuMakeReports();
 int  menuExtraModes();
 
 // ---
-int  modePickBooks();
-int  modePickReaders();
-int  modePickIssues();
-int  modePickTickers();
-int  modePickUsers();
+int  modeSearchBooks();
+int  modeSearchReaders();
+int  modeSearchIssues();
+int  modeSearchTickers();
+int  modeSearchUsers();
 
-int  modeSaveNewBook();
-int  modeSaveNewReader();
-int  modeSaveNewIssue();
-int  modeSaveNewTicket();
-int  modeSaveNewUser();
-
-int  modeMakeReports();
+int  modeMakeReports(int searchInd, string var, int parlen);
 
 // ---
-int     makeDebugData();
 int     makeNewDatabase();
 string  makeBookQuery();
 string  makeReaderQuery();
@@ -209,16 +214,6 @@ void putsxy(int x, int y, char* str){
 // =========================================================
 void GetConsoleSize(int &dw, int &dh)
 {
-//    CONSOLE_SCREEN_BUFFER_INFO csbiData;
-//    DWORD dwWidht, dwHeight;
-//    HANDLE hWndCon = GetStdHandle(STD_OUTPUT_HANDLE);
-//    if (FALSE != hWndCon)GetConsoleScreenBufferInfo(hWndCon, &csbiData);
-//
-//    dwWidht  = csbiData.dwSize.X; // Ширина буфера / окна
-//    dwHeight = csbiData.srWindow.Bottom + 1; // Высота окна
-//    dw = (int)dwWidht;
-//    dh = (int)dwHeight;
-
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
     dw = csbi.srWindow.Right - csbi.srWindow.Left + 1;
@@ -325,8 +320,7 @@ int  userControl()
 int menuMain()
 {
     while(1) {
-    setWindow0; clrWindow1;  clrWindow2;
-    setWindow1;
+    setWindow0; clrWindow1;  clrWindow2; setWindow1;
 
     cputs("*** Вас приветствует система ИнСиБ ***\r\n"); // 4
     cputs("\r\n\r\n"); // 5 6
@@ -334,15 +328,15 @@ int menuMain()
     cputs("\r\n"); // 8
     cputs("======================================\r\n"); // 9
     cputs("\r\n"); // 10
-    cputs("      [1] Поиск литературы\r\n");  // menuGetBooks
+    cputs("      [1] Поиск литературы\r\n");  // menuSearchBooks
     cputs("      [2] Заказ литературы\r\n");  // menuNewIssue
     cputs("      [3] Новый абонент\r\n");     // menuNewReader
-    cputs("      [4] Поиск абонентов\r\n");   // menuGetReaders
-    cputs("      [5] Заказы к выдаче\r\n");   // menuGetIssues
+    cputs("      [4] Поиск абонентов\r\n");   // menuSearchReaders
+    cputs("      [5] Заказы к выдаче\r\n");   // menuSearchIssues
     cputs("      [6] Отчеты, справки\r\n");   // menuMakeReports
     cputs("      [7] Дополнителные режимы\r\n");// menuExtraModes
-        // "[1] Список чит.билетов");       // menuGetTickers()
-        // "[2] Список пользователей");     // menuGetUsers()
+        // "[1] Список чит.билетов");       // menuSearchTickers()
+        // "[2] Список пользователей");     // menuSearchUsers()
         // "[3] Ввод новой книги");         // menuNewBook()
         // "[4] Ввод нового чит.билета");   // menuNewTicker()
         // "[5] Ввод нового пользователя"); // menuNewUser()
@@ -354,26 +348,28 @@ int menuMain()
     char choice = _getch();
     switch(choice)
     {
-    case '1': case 1: menuGetBooks(); break;
+    case '1': case 1: menuSearchBooks(); break; // menuGetBooks menuSearchBooks
 //    case '2': case 2: menuNewIssue();    break;
 //    case '3': case 3: menuNewReader();   break;
-    case '4': case 4: menuGetReaders();  break;
-//    case '5': case 5: menuGetIssues();   break;
-//    case '6': case 6: menuMakeReports(); break;
+    case '4': case 4: menuSearchReaders();  break;
+//    case '5': case 5: menuSearchIssues();   break;
+    case '6': case 6: menuMakeReports(); break;
 //    case '7': case 7: menuExtraModes();  break;
     case '8': case 8: makeNewDatabase();   break;
-    case '0': case 0: case ESC: return 0;
+    case '0': case 0: case KEY_ESC: return 0;
     }
   }
 }
 
 
+
+///===================================================================
+//  ("      [1] Поиск литературы\r\n");  // menuSearchBooks
 // -------------------------------------
 // Меню режима поиска литературы
-int  menuGetBooks()
+int  menuSearchBooks()
 {
-    setWindow0; clrWindow1;
-    setWindow1;
+    setWindow0; clrWindow1; setWindow1;
     int parlen=0, ypos=7;
 
     cputs("**** РЕЖИМ  ПОИСКА ЛИТЕРАТУРЫ ****\r\n\r\n");// 4
@@ -382,8 +378,8 @@ int  menuGetBooks()
     cputs("ESC для возврата в основное меню\r\n"); // 7
     cputs("==================================\r\n\r\n"); // 9
     for (int i=1; i<=LINSYS_BOOKS; i++) {// 10 - 20
-        int n = biArr[i].par.size();
-        if (n>parlen) parlen = n;
+        int len = biArr[i].par.size();
+        if (len>parlen) parlen = len;
         cputs((char*)biArr[i].par.c_str()); cputs("\r\n");
     }
     cputs("                                  \r\n");// 20
@@ -394,14 +390,15 @@ int  menuGetBooks()
 
     int searchInd=1, choice=0;
 
+    textcolor(WHITE); // установили цвет вводимых параметров
     while( 1 )
     {
-        putsxy(parlen+2,7+searchInd, "> "); // 27
+        putsxy(parlen+2,ypos+searchInd, "> "); // 27
         cprintf("%s", biArr[searchInd].var.c_str());
 
         int choice = getch();
 
-        if (!choice)// =0 - это расширенный код клавиш
+        if (choice==0)// =0 - это расширенный код клавиш
         {
             putsxy(parlen+2,ypos+searchInd, "  ");
             handle224key(searchInd, LINSYS_BOOKS);
@@ -409,6 +406,7 @@ int  menuGetBooks()
         else // Обработка не-расширенных кодов клавиш
         {
             if (choice == KEY_ESC) {
+                textcolor(YELLOW); // восстановили цвет
                 // очистка данных после окончания поиска
                 for (int i=1; i<=LINSYS_BOOKS; i++)
                     biArr[i].var.clear();
@@ -419,7 +417,7 @@ int  menuGetBooks()
                 putsxy(parlen+3+len,ypos+searchInd, " ");
             } else
             if (choice == KEY_ENTER) {
-                modePickBooks();
+                modeSearchBooks();
                 setWindow1;
             }
             else { // текст
@@ -436,21 +434,21 @@ int  menuGetBooks()
 //			KEY_TAB, KEY_ENTER
 //          MOUSE_LCLICK, MOUSE_RCLICK
 //          MOUSE_WHEELUP, MOUSE_WHEELDOWN
-int  modePickBooks()  {
+int  modeSearchBooks()  {
 
     string sql = makeBookQuery();
 
-    TestDatabase tdb;
-    int records = tdb.testPickBooks(sql);
+    LinsysDatabase tdb;
+    int records = tdb.SearchBook(sql);
     int available = 0, ind = 0, maxind = records-2;;
     bool update = true;
     vector<string> queryResult = tdb.getQueryResult();
 
-    setWindow0; clrWindow2;
+    setWindow0;
     gotoxy(9,28);
     cprintf("Всего найдено %d, из них в наличии %d", records, available);
 
-    setWindow2;
+    clrWindow2; setWindow2;
 
     if (records == 0){
         return records;
@@ -529,56 +527,16 @@ string  makeBookQuery()  {
 
 
 ///===================================================================
+//  ("      [4] Поиск абонентов\r\n");   // menuSearchReaders
 
 // -------------------------------------
 // Меню режима поиска абонентов
-int  menuGetReaders()
+int  menuSearchReaders()
 {
-    system("cls");
-    putsxy( 8, 2, "**** РЕЖИМ  ПОИСКА  АБОНЕНТОВ ****");
-    putsxy( 8, 4, "Заполните требуемые поля и нажмите");
-    putsxy(16, 5, "Ctrl+F для поиска или");
-    putsxy(16, 6, "Ctrl+X или ESC для выхода");
-    putsxy( 8, 7, "==================================");
-
-    for (int i=1; i<=LINSYS_READERS; i++)
-        putsxy(8, 8+i, (char*)riArr[i].par.c_str());
-
-    putsxy( 8, 7+3+LINSYS_READERS, "==================================");// 21
-    putsxy( 8,22, "  Используйте стрелки вверх/вниз ");
-    putsxy( 8,23, "   для выбора параметра поиска");
-
-    int searchInd = 1;
-    int choice = 0;
-
-    while( 1 ) {
-
-        putsxy(27, 8+searchInd, "> ");
-        printf("%s", riArr[searchInd].var.c_str());
-
-        int choice = getch();
-
-        if (choice == VK_ESCAPE || choice == 24)
-            return 0;
-        if (choice == 8) { // Backspace
-            handleBackspace(riArr, searchInd);
-            continue;
-        }
-        if (choice == 224) {
-            putsxy(27,10+searchInd, "  ");
-            handle224key(searchInd, LINSYS_READERS);
-        }
-        else if (choice == 6) {// CTRL+F
-            modePickReaders();
-            //gotoxy(8,25); printf("Всего найдено %d, из них в наличии %d", 111, 99);
-        }
-        else {// текст
-            riArr[searchInd].var += (char)choice;
-        }
-    }
+    return 0;
 }
 
-int  modePickReaders()  {
+int  modeSearchReaders()  {
     string sql_query = makeReaderQuery();
     putsxy( 8,26, (char*)sql_query.c_str());
     return 1;
@@ -601,10 +559,14 @@ string  makeReaderQuery()  {
     return sql_query;
 }
 
+int  menuMakeReports()
+{
+    return 0;
+}
 
 int makeNewDatabase()
 {
-    TestDatabase tdb;
+    LinsysDatabase tdb;
     tdb.makeNewDatabase("LInSys.db");
 
 //    tdb.createDatabaseSql("linsys.sql");
@@ -618,61 +580,29 @@ int makeNewDatabase()
 }
 
 
-
 /*
 ------------------------------------------------------------
         **** РЕГИСТРАЦИЯ В СИСТЕМЕ ИнСиБ ****
-
         =====================================
-
                 Ваше имя: 1
                   Пароль: 1
 
 ------------------------------------------------------------
         **** Вас приветствует система ИнСиБ ****
-
                     РЕЖИМЫ РАБОТЫ
-
         ========================================
                 [1] Поиск литературы
                 [2] Заказ литературы
                 [3] Новый абонент
                 [4] Поиск абонентов
                 [5] Заказы к выдаче
-
+                [6] Отчёты, справки
                 [7] Дополнителные режимы
                 [0] Конец работы
 
-        ========================================
-
-        Введите требуемый режим:
 ------------------------------------------------------------
 [1] Поиск литературы
-        **** РЕЖИМ  ПОИСКА ЛИТЕРАТУРЫ ****
 
-        Заполните требуемые поля и нажмите
-                Ctrl+F для поиска или
-                Ctrl+X или ESC для выхода
-        ==================================
-
-        Автор, авторы      >
-        Заглавие
-        Издательство
-        Год издания
-        Номер тома
-        Год (периодика)
-        Номер (периодика)
-        Жанр
-        УДК
-        ББК
-        ISBN/ISSN
-
-        ==================================
-
-          Используйте стрелки вверх/вниз
-           для выбора параметра поиска
-
-        Всего найдено 111, из них в наличии 99
 ------------------------------------------------------------
 [2] Заказ литературы
 
@@ -697,19 +627,10 @@ int makeNewDatabase()
         ББК
         ISBN/ISSN
 
-        =============================================
-
-
 ------------------------------------------------------------
 [3] Новый абонент
 
         **** РЕЖИМ  НОВЫЙ  АБОНЕНТ ****
-
-        Заполните требуемые поля и нажмите
-                Ctrl+S для записи абонента
-                Ctrl+X или ESC для выхода
-        ==================================
-
         Фамилия            >
         Имя
         Отчество
@@ -721,20 +642,10 @@ int makeNewDatabase()
         Тип пользователя
         Читателький билет
 
-        ==================================
-
-          Используйте стрелки вверх/вниз
-           для выбора параметра поиска
-------------------------------------------------------------
+----------------
 [4] Поиск абонентов
 
         **** РЕЖИМ  ПОИСКА  АБОНЕНТОВ ****
-
-        Заполните требуемые поля и нажмите
-                Ctrl+F для поиска или
-                Ctrl+X или ESC для выхода
-        ==================================
-
         Фамилия            >
         Имя
         Отчество
@@ -746,20 +657,10 @@ int makeNewDatabase()
         Тип пользователя
         Читателький билет
 
-        ==================================
-
-          Используйте стрелки вверх/вниз
-           для выбора параметра поиска
 ------------------------------------------------------------
 [5] Заказы к выдаче
 
         **** РЕЖИМ  ЗАКАЗЫ К  ВЫДАЧЕ  ****
-
-        Заполните требуемые поля и нажмите
-                Ctrl+F для поиска или
-                Ctrl+X или ESC для выхода
-        ==================================
-
         Код абонента       >
         Код экземпляра
         Дата заказа
@@ -767,46 +668,27 @@ int makeNewDatabase()
         Дата возврата
         Возвращена
 
-        ==================================
-
-          Используйте стрелки вверх/вниз
-           для выбора параметра поиска
 ------------------------------------------------------------
-[6] Отчеты, справки - НЕ ФОРМАТ ЭКРАНА, - НАПОМИНАНИЕ
+[6] Отчеты, справки
 
-              ФОРМИРОВАНИЕ ОТЧЕТОВ И СПРАВОК
-	Отчет по читателю:
-		- список долгов читателя
-		- среднее к-во книг в одном заказе и частота запросов
-	Отчет по выдаче книг:
-		- список выданных книг
-		- список свободных книг
-		- список операций, совершенных с определенной книгой
-		- список операций, совершенных со всеми книгами
-		- список операций, совершенных с участием определенного читателя
-	Отчет - статистические данные
-        - к-во книг, выданных за промежуток времени (по категориям)
-        - к-во посетителей, зарегистрированным в промежуток времени
-        - к-во поисковых запросов по автору (с расшифровкой)
-        - к-во поисковых запросов по названию (с расшифровкой)
-        - к-во поисковых запросов по другим критериям (с расшифровкой)
+        ****   ФОРМИРОВАНИЕ  ОТЧЕТОВ  ****
+        список долгов читателя      [id или все читатели]
+        зарегистрированные читатели [с .. по .. или все читатели]
+        общий список выданных книг  [id или все читатели]
+        общий список свободных книг
+        статистика заказов
 
 ------------------------------------------------------------
 [7]
               ДОПОЛНИТЕЛЬНЫЕ РЕЖИМЫ РАБОТЫ
-
         ========================================
-
-                [1] Список чит.билетов
+                [1] Список чит. билетов
                 [2] Список пользователей
                 [3] Ввод новой книги
                 [4] Ввод нового чит.билета
                 [5] Ввод нового пользователя
                 [0] Возврат в основное меню
 
-        ========================================
-
-        Введите требуемый режим:
 ------------------------------------------------------------
 [7] - [1] Список чит.билетов
 

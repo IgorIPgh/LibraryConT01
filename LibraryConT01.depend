@@ -1,15 +1,16 @@
 # depslib dependency file v1.0
-1742833798 source:d:\workspace\codeblocks\librarycont01\testdatabase.cpp
+1743191189 source:d:\workspace\codeblocks\librarycont01\testdatabase.cpp
+	"logger.h"
 	"TestDatabase.h"
 	"sqlite3pp.h"
 	"sqlite3ppext.h"
 
-1742756934 d:\workspace\codeblocks\librarycont01\testdatabase.h
+1743190858 d:\workspace\codeblocks\librarycont01\testdatabase.h
 	<time.h>
-	<string>
-	<sstream>
-	<iostream>
+	<ctime>
 	<fstream>
+	<iostream>
+	<sstream>
 	<string>
 	<vector>
 	<windows.h>
@@ -49,7 +50,7 @@
 
 1739539624 source:d:\workspace\codeblocks\librarycont01\library.rc
 
-1742893430 source:d:\workspace\codeblocks\librarycont01\main.cpp
+1743523613 source:d:\workspace\codeblocks\librarycont01\main.cpp
 	<stdio.h>
 	<conio.h>
 	<ctype.h>
@@ -60,11 +61,63 @@
 	<fstream>
 	"sqlite3.h"
 	"coniow.h"
-	"TestDatabase.h"
+	"logger.h"
+	"LinsysDatabase.h"
 
 1654521894 c:\development\coniow\coniow.h
 	<stddef.h>
 	"keys_n_colors.h"
 
 1654513050 c:\development\coniow\keys_n_colors.h
+
+1743006863 source:d:\workspace\codeblocks\librarycont01\logger.cpp
+	"logger.h"
+
+1743005428 d:\workspace\codeblocks\librarycont01\logger.h
+	<ctime>
+	<fstream>
+	<iostream>
+	<sstream>
+
+1742143012 d:\workspace\codeblocks\librarycont01\sqlite3pp\sqlite3pp.h
+	<functional>
+	<iterator>
+	<stdexcept>
+	<string>
+	<tuple>
+	<sqlite3ext.h>
+	<sqlite3.h>
+	"sqlite3pp.ipp"
+
+1699713316 d:\workspace\codeblocks\librarycont01\sqlite3pp\sqlite3pp.ipp
+	<cstring>
+	<memory>
+
+1699713316 d:\workspace\codeblocks\librarycont01\sqlite3pp\sqlite3ppext.h
+	<cstddef>
+	<map>
+	<memory>
+	<tuple>
+	<type_traits>
+	<utility>
+	"sqlite3pp.h"
+	"sqlite3ppext.ipp"
+
+1699713316 d:\workspace\codeblocks\librarycont01\sqlite3pp\sqlite3ppext.ipp
+	<cstring>
+
+1743516641 source:d:\workspace\codeblocks\librarycont01\linsysdatabase.cpp
+	"logger.h"
+	"LinsysDatabase.h"
+	"sqlite3pp.h"
+	"sqlite3ppext.h"
+
+1743521273 d:\workspace\codeblocks\librarycont01\linsysdatabase.h
+	<ctime>
+	<fstream>
+	<iostream>
+	<sstream>
+	<string>
+	<vector>
+	<windows.h>
 
