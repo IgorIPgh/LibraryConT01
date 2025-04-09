@@ -73,7 +73,8 @@
 1743006863 source:d:\workspace\codeblocks\librarycont01\logger.cpp
 	"logger.h"
 
-1743005428 d:\workspace\codeblocks\librarycont01\logger.h
+1743520233 d:\workspace\codeblocks\librarycont01\logger.h
+	<istream>
 	<ctime>
 	<fstream>
 	<iostream>
@@ -106,13 +107,13 @@
 1699713316 d:\workspace\codeblocks\librarycont01\sqlite3pp\sqlite3ppext.ipp
 	<cstring>
 
-1743516641 source:d:\workspace\codeblocks\librarycont01\linsysdatabase.cpp
+1744186920 source:d:\workspace\codeblocks\librarycont01\linsysdatabase.cpp
 	"logger.h"
 	"LinsysDatabase.h"
 	"sqlite3pp.h"
 	"sqlite3ppext.h"
 
-1743521273 d:\workspace\codeblocks\librarycont01\linsysdatabase.h
+1744128272 d:\workspace\codeblocks\librarycont01\linsysdatabase.h
 	<ctime>
 	<fstream>
 	<iostream>
@@ -120,4 +121,21 @@
 	<string>
 	<vector>
 	<windows.h>
+
+1744186692 source:d:\workspace\codeblocks\librarycont01\librarycon.cpp
+	"LibraryCon.h"
+	"LinsysDatabase.h"
+
+1744180676 d:\workspace\codeblocks\librarycont01\librarycon.h
+	<stdio.h>
+	<conio.h>
+	<ctype.h>
+	<string.h>
+	<windows.h>
+	<locale.h>
+	<iostream>
+	<fstream>
+	"sqlite3.h"
+	"coniow.h"
+	"logger.h"
 

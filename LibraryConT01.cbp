@@ -41,8 +41,8 @@
 			<Add directory="C:/development/SQLite" />
 			<Add directory="C:/development/coniow" />
 		</Linker>
-		<Unit filename="TestDatabase.cpp" />
-		<Unit filename="TestDatabase.h" />
+		<Unit filename="LinsysDatabase.cpp" />
+		<Unit filename="LinsysDatabase.h" />
 		<Unit filename="library.ico" />
 		<Unit filename="library.rc">
 			<Option compilerVar="WINDRES" />

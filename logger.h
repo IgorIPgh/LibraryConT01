@@ -1,3 +1,6 @@
+// *** ADDED BY HEADER FIXUP ***
+#include <istream>
+// *** END ***
 #ifndef LOGGER_H_INCLUDED
 #define LOGGER_H_INCLUDED
 

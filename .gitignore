@@ -59,3 +59,7 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+main.cpp
+main.cpp
+TestDatabase.cpp
+TestDatabase.h
