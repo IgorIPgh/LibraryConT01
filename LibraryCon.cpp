@@ -388,7 +388,7 @@ int  menuSearchBooks()
 // ---------------------------------------------------------
 int  modeSearchBooks()
 {
-    vector<tblBook> vecBook;// список книг для просмотра
+    vector<tblBook> vecBook;// список для просмотра
 
     LinsysDatabase tdb;
     string sql = tdb.makeBookQuery(0);
@@ -592,6 +592,8 @@ int  menuSearchReaders()
 // ---------------------------------------------------------
 int  modeSearchReaders()
 {
+    // реализовать по аналогии с modeSearchBooks()
+
     return notExistsYet();
 }
 
@@ -670,7 +672,54 @@ int  menuMakeReports()
 // var - вх. параметры формируемого отчёта
 // parlen - число параметров (строк) в каждой записи
 int  modeMakeReports(int searchInd, string var, int parlen){
-    return notExistsYet();
+{
+    LinsysDatabase tdb;
+    int records;
+    switch(searchInd){
+    case 1: records = tdb.ListOfReadersDebts(var); break;
+    case 2: records = tdb.ListOfReadersRegistered(var); break;
+    case 3: records = tdb.ListOfBooksIssued(var); break;
+    case 4: records = tdb.ListOfBooksAvailabled(var); break;
+    case 5: records = tdb.CalcIssueStatistics(var); break;
+    }
+    int available = 0, ind = 0;
+    // maxWin2H - число строк в окне 2 = 24
+    int recwin = maxWin2H/parlen; // записей в окне
+    int maxind = records-recwin;  // индекс 1й записи в последнем окне
+    bool update = true;
+    vector<string> &queryResult = tdb.getQueryResult();
+
+    PrintTotalFound(records);
+
+    clrWindow2; setWindow2;
+
+    if (records == 0){
+        cputs("\r\n    Данная функция пока не реализована");
+        return records;
+    }
+    if (maxind <= 0){ // всё помещается в 1 окне
+        for (int i=0; i<records; i++)
+            cputs(queryResult[ind+i].c_str());
+        return records;
+    }
+
+    while (1)
+    {
+        if (update) {
+            for (int i=0; i<recwin; i++)
+                cputs(queryResult[ind+i].c_str());
+        }
+        int choice = getkbm();
+
+        if (choice == KEY_TAB || choice == KEY_ENTER)
+            { return records; }
+        else if (choice == MOUSE_LCLICK || choice == MOUSE_WHEELUP)
+            { update = ind!=0; if (--ind<0) ind=0; }
+        else if (choice == MOUSE_RCLICK || choice == MOUSE_WHEELDOWN)
+            { update = ind!=maxind; if (++ind>maxind) ind=maxind;; }
+        else if (choice - KEY_SPECIAL > 0)
+            { indexControl(choice, maxind, recwin, ind, update); }
+    }
 }
 
 
@@ -713,7 +762,7 @@ int menuExtraModes()
 ///===================================================================
 ///== [6-1] Список чит.билетов ===
 int menuShowTickets() {
-    vector<tblAbonent> vecAbonent;// список книг для просмотра
+    vector<tblAbonent> vecAbonent;// список для просмотра
 
     LinsysDatabase tdb;
     string sql = tdb.makeAbonentQuery();
@@ -732,7 +781,7 @@ int menuShowTickets() {
         clrWindow2; setWindow2;
         cputs(vecAbonent[ind].toString().c_str());
         setWindow1;
-       // _setcursortype(_NORMALCURSOR);
+        // _setcursortype(_NORMALCURSOR);
         return records;
     }
 

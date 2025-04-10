@@ -18,7 +18,7 @@
 			<Target title="Release">
 				<Option output="bin/Release/LibraryConT01" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release/" />
-				<Option type="1" />
+				<Option type="0" />
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
@@ -41,6 +41,8 @@
 			<Add directory="C:/development/SQLite" />
 			<Add directory="C:/development/coniow" />
 		</Linker>
+		<Unit filename="LibraryCon.cpp" />
+		<Unit filename="LibraryCon.h" />
 		<Unit filename="LinsysDatabase.cpp" />
 		<Unit filename="LinsysDatabase.h" />
 		<Unit filename="library.ico" />
@@ -49,7 +51,6 @@
 		</Unit>
 		<Unit filename="logger.cpp" />
 		<Unit filename="logger.h" />
-		<Unit filename="main.cpp" />
 		<Unit filename="sqlite3pp/sqlite3pp.h" />
 		<Unit filename="sqlite3pp/sqlite3pp.ipp" />
 		<Unit filename="sqlite3pp/sqlite3ppext.h" />
