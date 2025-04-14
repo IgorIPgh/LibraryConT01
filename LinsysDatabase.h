@@ -62,8 +62,9 @@ struct tblBook {
         if(year!=0) {
         sprintf(buf, "Год:%4d\r\n", year);
         str.append(buf);
+        if(volume!=0) {
         sprintf(buf, "Том:%2d\r\n", volume);
-        str.append(buf);
+        str.append(buf); }
         }
         if(year_p!=0) {
         sprintf(buf, "Год:%4d\r\n", year_p);

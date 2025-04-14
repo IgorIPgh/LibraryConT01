@@ -367,9 +367,11 @@ int  menuSearchBooks()
         {
             if (choice == KEY_ESC) {
                 textcolor(YELLOW); // восстановили цвет
+                clrscr();// очищает текущее текстовое окно и устанавливает курсор в позицию 1,1
+
                 // очистка данных после окончани€ поиска
-                for (int i=1; i<=LINSYS_BOOKS; i++)
-                    biArr[i].var.clear();
+//                for (int i=1; i<=LINSYS_BOOKS; i++)
+//                    biArr[i].var.clear();
                 return 0;
             } else
             if (choice == KEY_BACKSPACE) {
@@ -429,7 +431,7 @@ int  modeSearchBooks()
     while (1)
     {
         if (update) {
-            gotoxy(1,1);
+            clrscr();// очищает текущее текстовое окно и устанавливает курсор в позицию 1,1
             cputs(vecBook[ind].toString().c_str());
         }
 
@@ -671,7 +673,7 @@ int  menuMakeReports()
 // searchInd - номер формируемого отчЄта
 // var - вх. параметры формируемого отчЄта
 // parlen - число параметров (строк) в каждой записи
-int  modeMakeReports(int searchInd, string var, int parlen){
+int  modeMakeReports(int searchInd, string var, int parlen)
 {
     LinsysDatabase tdb;
     int records;
@@ -706,6 +708,7 @@ int  modeMakeReports(int searchInd, string var, int parlen){
     while (1)
     {
         if (update) {
+            clrscr();// очищает текущее текстовое окно и устанавливает курсор в позицию 1,1
             for (int i=0; i<recwin; i++)
                 cputs(queryResult[ind+i].c_str());
         }
@@ -730,6 +733,7 @@ int menuExtraModes()
 {
     while(1) {
     setWindow0; clrWindow1;  clrWindow2; setWindow1;
+    textcolor(YELLOW);
 
     cputs("****     ƒќѕќЋЌ»“≈ЋЌџ≈  –≈∆»ћџ    ****\r\n\r\n"); // 7 8
     cputs("======================================\r\n\r\n"); // 9 10
@@ -793,7 +797,7 @@ int menuShowTickets() {
     while (1)
     {
         if (update) {
-            gotoxy(1,1);
+            clrscr();// очищает текущее текстовое окно и устанавливает курсор в позицию 1,1
             cputs(vecAbonent[ind].toString().c_str());
         }
 
