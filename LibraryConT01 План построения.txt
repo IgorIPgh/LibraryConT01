@@ -1,0 +1,143 @@
+В файле LinsysDatabase.h  уже имеются
+struct tblBook
+struct tblReader
+struct tblAbonent
+
+В файле LinsysDatabase.h  добавить и заполнить структуры
+struct tblDebts
+struct tblRgstrd
+struct tblIssued
+
+В классе LinsysDatabase добавить
+	int RequestReaderDebts     (string sql, vector<tblDebts>   & vec);
+    int RequestReaderRegistered(string sql, vector<tblRgstrd>  & vec);
+    int RequestBooksIssued     (string sql, vector<tblIssued>  & vec);
+	
+    int RequestReaderDebts     (string sql, vector<tblDebts>   & vec);
+    int RequestReaderRegistered(string sql, vector<tblRgstrd>  & vec);
+    int RequestBooksIssued     (string sql, vector<tblIssued>  & vec);
+
+По аналогии с 
+int RequestBook            (string sql, vector<tblBook>    & vec);
+string makeBookQuery(int sortby);
+
+создать
+int RequestReader          (string sql, vector<tblReader>  & vec);
+string makeReaderQuery();
+
+а также
+    string makeReaderDebtsQuery     (string par);
+    string makeReaderRegisteredQuery(string par);
+    string makeBooksIssuedQuery     (string par);
+
+    int RequestReaderDebts     (string sql, vector<tblDebts>   & vec);
+    int RequestReaderRegistered(string sql, vector<tblRgstrd>  & vec);
+    int RequestBooksIssued     (string sql, vector<tblIssued>  & vec);
+
+
+В классе LinsysDatabase добавить и реализовать:
+
+///-------------------------------------------------------------------
+// Сущность «Долги Читателя» = debts
+//
+string  LinsysDatabase::makeReaderDebtsQuery(string par)  {
+    string sql_query = "";
+
+    return sql_query;
+}
+
+int LinsysDatabase::RequestReaderDebts (string sql, vector<tblDebts> & vec){
+
+}
+
+///-------------------------------------------------------------------
+// Сущность «Регистрация читателей» = registered
+//
+string  LinsysDatabase::makeReaderRegisteredQuery(string par)  {
+    string sql_query = "";
+
+    return sql_query;
+}
+
+int LinsysDatabase::RequestReaderRegistered(string sql, vector<tblRgstrd> & vec){
+
+}
+
+///-------------------------------------------------------------------
+// Сущность «Выданные книги» = issued
+//
+string  LinsysDatabase::makeBooksIssuedQuery(string par)  {
+    string sql_query = "";
+
+    return sql_query;
+}
+
+int LinsysDatabase::RequestBooksIssued(string sql, vector<tblIssued> & vec){
+
+}
+
+
+В файле LibraryCon.cpp реализовать
+----------------------------------
+
+//----------------------------------------------------------
+// Формирование отчета и его вывод в окно. Имеется скроллинг
+// var - вх. параметры формируемого отчёта
+int  modeReportDebts(string var)
+{
+    vector<tblDebts> vecDebts;// список для просмотра
+
+    LinsysDatabase tdb;
+    string sql = tdb.makeReaderDebtsQuery(var);
+    int records = tdb.RequestReaderDebts(sql, vecDebts);
+    int issued = 0;
+    int ind = 0, maxind = records-2;;
+    bool update = true;
+
+    PrintTotalFound(records);
+
+    if (records == 0){
+        setWindow1;
+        //_setcursortype(_NORMALCURSOR);
+        return records;
+    }
+    if (records == 1){
+        clrWindow2; setWindow2;
+        cputs(vecDebts[ind].toString().c_str());
+        setWindow1;
+        // _setcursortype(_NORMALCURSOR);
+        return records;
+    }
+
+    textcolor(CYAN);
+    setWindow0; putBorder2;
+    clrWindow2; setWindow2;
+    _setcursortype(_NOCURSOR);
+
+    textcolor(WHITE); // установили цвет выводимых данных
+
+    while (1)
+    {
+        if (update) {
+            clrscr();// очищает текущее текстовое окно и устанавливает курсор в позицию 1,1
+            cputs(vecDebts[ind].toString().c_str());
+        }
+
+        int choice = getkbm();
+
+        if (choice == KEY_ENTER) {
+                textcolor(YELLOW);
+                setWindow0; putBorder2;
+                setWindow1;
+                _setcursortype(_NORMALCURSOR);
+                return records;
+        }
+
+        else if (choice == MOUSE_WHEELUP)
+            { update = ind!=0; if (--ind<0) ind=0; }
+        else if (choice == MOUSE_WHEELDOWN)
+            { update = ind!=maxind; if (++ind>maxind) ind=maxind;; }
+        else if (choice - KEY_SPECIAL > 0)
+            { indexControl(choice, maxind, 10, ind, update); }
+    }
+}
