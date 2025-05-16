@@ -367,7 +367,6 @@ void LinsysDatabase::createDatabaseSql(char* fname)
         out << makeInsertAbonent(i) << endl;
     out << sqlInsertDataRole << endl;
     out << sqlInsertDataGenre << endl;
-
     logger.log(LOGlevel::INF, "сформированы данные для загрузки");
 
     out.close();
@@ -425,7 +424,6 @@ void LinsysDatabase::saveSqlAbonent(char* fname, int num){
 int LinsysDatabase::genint(int min, int max) {
     return min + rand()%(max-min+1);
 }
-
 char* LinsysDatabase::genInt(int min, int max) {
     static char text[10];
     sprintf(text, "%d", min + rand()%(max-min+1));
@@ -473,8 +471,8 @@ string LinsysDatabase::addDaysToDate(string date, int days)
 	return string(ddd);
 }
 
-//////////////////////////////////////////////////////////////////////
-// + SearchBook + depricated
+////////////////////////////////////////////////////////////////////
+// + SearchBook
 int  LinsysDatabase::SearchBook(string sql)
 {
     int records=0;
@@ -515,7 +513,7 @@ int  LinsysDatabase::SearchBook(string sql)
     return records;
 }
 
-
+//
 string LinsysDatabase::makeBookQuery(int sortby)  {
     string sql_query = "SELECT * FROM book ";
     string sql_where, sql_sort = " ORDER BY ";
@@ -645,14 +643,67 @@ int LinsysDatabase::RequestReader(string sql, vector<tblReader> &vec)
 // Сущность «Абонент» = abonent
 //
 string  LinsysDatabase::makeAbonentQuery()  {
-    string sql_query = "";
+    string sql_query ="SELECT abonent.id as abon_id, "
+        "reader.id as read_id, role.id as role_id, "
+        "login, password, ticket, date_in, date_out, "
+        "reader.lname, reader.mname, reader.fname, role.descr "
+        "FROM abonent, reader INNER JOIN role ON abonent.role_id = role.id "
+        "AND abon_id = read_id";
+
+    string sql_where;
+    for(int i=1; i<=LINSYS_ABONENTS; i++) {
+        if (riArr[i].var.size()>0) {
+            sql_where.append(aiArr[i].col);
+            sql_where.append(aiArr[i].sd?"=":" LIKE '%");
+            sql_where.append(aiArr[i].var);
+            sql_where.append(aiArr[i].sd?" ":"%' ");
+            sql_where.append("AND ");
+        }
+    }
+    // удаляем последнее вхождение AND
+    size_t position = sql_where.rfind("AND ");
+    sql_where[position] = 0;
+    // полный оператор запроса
+    if(sql_where.size() > 0) {
+        sql_query.append("WHERE "+sql_where);
+    }
     return sql_query;
 }
 
+
 //////////////////////////////////////////////////////////////////////
 // + vectorAbonent
-int LinsysDatabase::RequestAbonent(string sql, vector<tblAbonent> & vec)
+int LinsysDatabase::RequestAbonent(string sql, vector<tblAbonent> &vec)
 {
+    try {
+        sqlite3pp::database dbase(dbname.c_str());
+        {
+            sqlite3pp::transaction xct(dbase);
+            {
+                vec.clear();
+
+                sqlite3pp::query query(dbase, sql.c_str());
+
+                for (sqlite3pp::query::iterator i = query.begin(); i != query.end(); ++i) {
+                    tblAbonent trdr;
+                    string ln,mn,fn;
+                    (*i).getter()
+                        >> trdr.abon_id >> trdr.read_id >> trdr.role_id
+                        >> trdr.login >> trdr.password >> trdr.ticket
+                        >> trdr.date_in >> trdr.date_out >> ln >> mn >> fn
+                        >> trdr.srole;
+                    trdr.sreader=ln+' '+fn+' '+mn;
+                    vec.push_back(trdr);
+                }
+            }
+        }
+        dbase.disconnect();
+
+    } catch (exception & ex) {
+        Logger logger(logfile);
+        logger.log(LOGlevel::ERR, ex.what());
+    }
+
     return vec.size();
 }
 
@@ -664,71 +715,95 @@ int LinsysDatabase::RequestAbonent(string sql, vector<tblAbonent> & vec)
 //    Список свободных книг
 //    Статистика заказов
 // ---------------------------------------------------------
-//
-//    string  makeReaderDebtsQuery();
-//    string  makeReaderRegisteredQuery();
-//    string  makeBooksIssuedQuery();
-//
-//    int RequestReaderDebts     (string sql, vector<tblDebts>   & vec);
-//    int RequestReaderRegistered(string sql, vector<tblRgstrd>  & vec);
-//    int RequestBooksIssued     (string sql, vector<tblIssued>  & vec);
-
-///-------------------------------------------------------------------
-// Сущность «Долги Читателя» = debts
-//
-string  LinsysDatabase::makeReaderDebtsQuery(string par)  {
-    string sql_query = "";
-
-    return sql_query;
-}
-
-int LinsysDatabase::RequestReaderDebts (string sql, vector<tblDebts> & vec){
-
-}
-
-///-------------------------------------------------------------------
-// Сущность «Регистрация читателей» = registered
-//
-string  LinsysDatabase::makeReaderRegisteredQuery(string par)  {
-    string sql_query = "";
-
-    return sql_query;
-}
-
-int LinsysDatabase::RequestReaderRegistered(string sql, vector<tblRgstrd> & vec){
-    return 0;
-}
-
-///-------------------------------------------------------------------
-// Сущность «Выданные книги» = issued
-//
-string  LinsysDatabase::makeBooksIssuedQuery(string par)  {
-    string sql_query = "";
-
-    return sql_query;
-}
-
-int LinsysDatabase::RequestBooksIssued(string sql, vector<tblIssued> & vec){
-    return 0;
-}
-
-
-
 
 //////////////////////////////////////////////////////////////////////
 // + список долгов читателя;
 // list of reader's debts
-int  LinsysDatabase::ListOfReadersDebts(string par)
-{
-    int days=15, records=0;
-    return records;
+string  LinsysDatabase::makeReaderDebtsQuery(string par)  {
+    string sql_query =
+    "SELECT reader.id, book.id, reader.lname, reader.fname, reader.mname, reader.address, reader.phone, "
+    "book.author, book.title, book.year, book.volume, book.year_p, book.volume_p, issue.date_issue, "
+    "date(issue.date_issue, '+15 days') "
+    "FROM issue "
+    "INNER JOIN reader ON issue.reader_id=reader.id AND issue.date_backw='' AND issue.date_issue!='' "
+    "INNER JOIN book ON issue.book_id=book.id ";
+
+    int r1=-1, r2=-1;
+    int rc=sscanf(par.c_str(), "%d%*c%d", &r1, &r2);
+    string where="";
+
+    switch(rc) {
+        case 1: where="reader.id="+to_string(r1); break;
+        case 2: where="reader.id>="+to_string(r1);
+                where.append(" AND reader.id<="+to_string(r2)); break;
+    }
+
+    // полный оператор запроса
+    if(where.size() > 0) {
+        sql_query.append("WHERE "+where);
+    }
+    Logger logger(logfile);
+    logger.log(LOGlevel::INF, sql_query);
+    return sql_query;
 }
+
+int LinsysDatabase::RequestReaderDebts(string sql, vector<tblDebt> &vec)
+{
+    try {
+        sqlite3pp::database dbase(dbname.c_str());
+        {
+            sqlite3pp::transaction xct(dbase);
+            {
+                vec.clear();
+
+                sqlite3pp::query query(dbase, sql.c_str());
+
+                for (sqlite3pp::query::iterator i = query.begin(); i != query.end(); ++i) {
+                    tblDebt tdbt;
+                    (*i).getter()
+                        >> tdbt.read_id >> tdbt.book_id >> tdbt.lname >> tdbt.fname >> tdbt.mname >> tdbt.address
+                        >> tdbt.phone >> tdbt.author >> tdbt.title >> tdbt.year >> tdbt.volume >> tdbt.year_p
+                        >> tdbt.volume_p >> tdbt.date_issue >> tdbt.date_wait
+                        ;
+                    vec.push_back(tdbt);
+                }
+            }
+        }
+        dbase.disconnect();
+
+    } catch (exception & ex) {
+        Logger logger(logfile);
+        logger.log(LOGlevel::ERR, ex.what());
+    }
+
+    return vec.size();
+}
+
 
 //////////////////////////////////////////////////////////////////////
 // + список читателей, зарегистрированным в промежуток времени
 // list of readers registered during the time period
-int LinsysDatabase::ListOfReadersRegistered(string par)// date1, date2
-{
+//
+string  LinsysDatabase::makeReaderRegisteredQuery(string par)  {
+    string sql_query =
+    "select reader.id, abonent.id, abonent.role_id,"
+    "lname,fname,mname, date_birth, address,phone,email,"
+    "abonent.ticket, abonent.date_in from reader"
+    "inner join abonent on reader.id=abonent.reader_id"
+    "where abonent.date_in ";
+
+    string sql_where;
+    string p1="", p2="";
+    sscanf(par.c_str(), "%s%*c%s", &p1, &p2);
+    if (p2=="") sql_query.append("= "+p1);
+    else sql_query.append("between "+p1+" and "+p2);
+    // полный оператор запроса
+    if(sql_where.size() > 0) {
+        sql_query.append(sql_where);
+    }
+    return sql_query;
+}
+int LinsysDatabase::RequestReaderRegistered(string sql, vector<tblRgstrd> & vec){
     int records=0;
     return records;
 }
@@ -736,20 +811,21 @@ int LinsysDatabase::ListOfReadersRegistered(string par)// date1, date2
 //////////////////////////////////////////////////////////////////////
 // + список выданных книг;  list of books issued;
 // + список книг, выданных за промежуток времени (по категориям).
-int LinsysDatabase::ListOfBooksIssued(string par)// date1 date2
-{
-    int records=0;
-    return records;
+string LinsysDatabase::makeBooksIssuedQuery(string par){
+    return "";
+}
+int LinsysDatabase::RequestBooksIssued(string sql, vector<tblIssued> & vec){
+    return 0;
 }
 
 //////////////////////////////////////////////////////////////////////
-// - список свободных книг;  list of available books;
+// - список свободных книг;  list of available books; Список доступных книг
 int LinsysDatabase::ListOfBooksAvailabled(string par)//string date1, string date2
 {
     int records=0;
     return records;
 }
-
+//
 // - среднее к-во книг в одном заказе и частота запросов;
 // the average number of books per order and the frequency of requests;
 int LinsysDatabase::CalcIssueStatistics(string par)

@@ -196,17 +196,13 @@ int Handle224key(int& ind, int maxind) {
     int choice = getch();
     switch (choice) {
         case 72:// UpArrow:
-            ind--; if (ind<1) ind=maxind;
-        break;
+            ind--; if (ind<1) ind=maxind; break;
         case 80:// DownArrow:
-            ind++; if (ind>maxind) ind=1;
-        break;
+            ind++; if (ind>maxind) ind=1; break;
         case 73:// PageUp:
-            ind=1;
-        break;
+            ind=1; break;
         case 81:// PageDown:
-            ind=maxind;
-        break;
+            ind=maxind; break;
     }
     return ind;
 }
@@ -444,7 +440,6 @@ int  modeSearchBooks()
                 _setcursortype(_NORMALCURSOR);
                 return records;
         }
-
         else if (choice == MOUSE_LCLICK)
         {
             int mx =_mousex - 49, my =_mousey - 3;
@@ -490,10 +485,8 @@ void sayNoIssues(){
     setWindow0; putBorder2; setWindow1;
     _setcursortype(_NORMALCURSOR);
 }
-int  menuCheckOrder()
-{
+int  menuCheckOrder(){
     setWindow0; clrWindow1; setWindow1; textcolor(YELLOW);
-
     cputs("****     ЗАКАЗЫ  К  ВЫДАЧЕ    ****\r\n\r\n");// 4 5
     cputs("Подготовленный набор литературы\r\n"); // 6
     cputs("в этом режиме оформляется в заказ\r\n\r\n"); // 7 8
@@ -594,10 +587,77 @@ int  menuSearchReaders()
 // ---------------------------------------------------------
 int  modeSearchReaders()
 {
-    // реализовать по аналогии с modeSearchBooks()
+    vector<tblReader> vecReader;// список для просмотра
 
-    return notExistsYet();
+    LinsysDatabase tdb;
+    string sql = tdb.makeReaderQuery();
+    int records = tdb.RequestReader(sql, vecReader);
+    int issued = 0;
+    int ind = 0, maxind = records-2;;
+    bool update = true;
+
+    PrintTotalFound(records);
+
+    if (records == 0) {
+        setWindow1;
+        //_setcursortype(_NORMALCURSOR);
+        return records;
+    }
+    if (records == 1) {
+        clrWindow2; setWindow2;
+        cputs(vecReader[ind].toString().c_str());
+        setWindow1;
+        // _setcursortype(_NORMALCURSOR);
+        return records;
+    }
+
+    textcolor(CYAN);
+    setWindow0; putBorder2; clrWindow2; setWindow2;
+    _setcursortype(_NOCURSOR);
+
+    textcolor(YELLOW); // установили цвет вводимых параметров
+    putsxy( 2,22, "Сортировать по: ");
+    putsxy(26,22, "Заказано всего: 0");
+    Button btn1( 1,24,"ФАМИЛИИ");
+    btn1.draw();
+    Button btn2(11,24,"НОМЕРУ БИЛЕТА");
+    btn2.draw();
+
+    textcolor(WHITE); // установили цвет вводимых параметров
+
+    while (1)
+    {
+        if (update) {
+            clrscr();// очищает текущее текстовое окно и устанавливает курсор в позицию 1,1
+            cputs(vecReader[ind].toString().c_str());
+        }
+
+        int choice = getkbm();
+
+        if (choice == KEY_ENTER) {
+            textcolor(YELLOW);
+            setWindow0; putBorder2; setWindow1;
+            _setcursortype(_NORMALCURSOR);
+            return records;
+        }
+
+        else if (choice == MOUSE_LCLICK) {
+            //пока кнопки не реализованы
+        }
+        else if (choice == MOUSE_WHEELUP) {
+            update = ind!=0;
+            if (--ind<0) ind=0;
+        }
+        else if (choice == MOUSE_WHEELDOWN) {
+            update = ind!=maxind;
+            if (++ind>maxind) ind=maxind;;
+        }
+        else if (choice - KEY_SPECIAL > 0) {
+            indexControl(choice, maxind, 10, ind, update);
+        }
+    }
 }
+
 
 
 ///===================================================================
@@ -659,10 +719,9 @@ int  menuMakeReports()
                 putsxy(7+1+len,ypos+(searchInd*2-1), " ");
             } else
             if (choice == KEY_ENTER) {
-                //modeMakeReports(searchInd, irArr[searchInd].var, irArr[searchInd].sd);
-                if (searchInd==0) modeReportReaderDebts(irArr[searchInd].var);
-                if (searchInd==1) modeReportReaderRegistered(irArr[searchInd].var);
-                if (searchInd==2) modeReportBooksIssued(irArr[searchInd].var);
+                if (searchInd==1) modeReportReaderDebts(irArr[searchInd].var);
+                if (searchInd==2) modeReportReaderRegistered(irArr[searchInd].var);
+                if (searchInd==3) modeReportBooksIssued(irArr[searchInd].var);
                 setWindow1;
             }
             else { // текст
@@ -678,7 +737,7 @@ int  menuMakeReports()
 // var - вх. параметры формируемого отчёта
 int  modeReportReaderDebts(string var)
 {
-    vector<tblDebts> vecDebts;// список для просмотра
+    vector<tblDebt> vecDebts;// список для просмотра
 
     LinsysDatabase tdb;
     string sql = tdb.makeReaderDebtsQuery(var);
@@ -743,59 +802,6 @@ int  modeReportBooksIssued     (string par){
     return 0;
 }
 
-
-
-//int  modeMakeReports(int searchInd, string var, int parlen)
-//{
-//    LinsysDatabase tdb;
-//    int records;
-//    switch(searchInd){
-//    case 1: records = tdb.ListOfReadersDebts(var); break;
-//    case 2: records = tdb.ListOfReadersRegistered(var); break;
-//    case 3: records = tdb.ListOfBooksIssued(var); break;
-//    case 4: records = tdb.ListOfBooksAvailabled(var); break;
-//    case 5: records = tdb.CalcIssueStatistics(var); break;
-//    }
-//    int available = 0, ind = 0;
-//    // maxWin2H - число строк в окне 2 = 24
-//    int recwin = maxWin2H/parlen; // записей в окне
-//    int maxind = records-recwin;  // индекс 1й записи в последнем окне
-//    bool update = true;
-//    vector<string> &queryResult = tdb.getQueryResult();
-//
-//    PrintTotalFound(records);
-//
-//    clrWindow2; setWindow2;
-//
-//    if (records == 0){
-//        cputs("\r\n    Данная функция пока не реализована");
-//        return records;
-//    }
-//    if (maxind <= 0){ // всё помещается в 1 окне
-//        for (int i=0; i<records; i++)
-//            cputs(queryResult[ind+i].c_str());
-//        return records;
-//    }
-//
-//    while (1)
-//    {
-//        if (update) {
-//            clrscr();// очищает текущее текстовое окно и устанавливает курсор в позицию 1,1
-//            for (int i=0; i<recwin; i++)
-//                cputs(queryResult[ind+i].c_str());
-//        }
-//        int choice = getkbm();
-//
-//        if (choice == KEY_TAB || choice == KEY_ENTER)
-//            { return records; }
-//        else if (choice == MOUSE_LCLICK || choice == MOUSE_WHEELUP)
-//            { update = ind!=0; if (--ind<0) ind=0; }
-//        else if (choice == MOUSE_RCLICK || choice == MOUSE_WHEELDOWN)
-//            { update = ind!=maxind; if (++ind>maxind) ind=maxind;; }
-//        else if (choice - KEY_SPECIAL > 0)
-//            { indexControl(choice, maxind, recwin, ind, update); }
-//    }
-//}
 
 
 ///===================================================================

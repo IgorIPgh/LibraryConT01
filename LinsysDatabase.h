@@ -110,6 +110,67 @@ struct tblReader {
         return str;
   }
 };
+//    "SELECT reader.id, book.id, reader.lname, reader.fname, reader.mname, reader.address, reader.phone, "
+//    "book.author, book.title, book.year, book.volume, book.year_p, book.volume_p, issue.date_issue, "
+//    "date(issue.date_issue, '+15 days') "
+//    "FROM issue--,book, reader "
+//    "INNER JOIN reader ON issue.reader_id=reader.id AND issue.date_backw='' AND issue.date_issue!='' "
+//    "INNER JOIN book ON issue.book_id=book.id ";
+struct tblDebt {
+  int book_id; // -- id
+  string author; // -- Автор
+  string title; // -- Название
+  int year;  // -- Год издания
+  int volume;  // -- Номер тома
+  int year_p; // -- Год (периодика)
+  int volume_p;// -- Номер (периодика)
+
+  int read_id; // -- id
+  string fname; // -- Имя
+  string mname; // -- Отчество
+  string lname;  // -- Фамилия
+  string address; // -- Адрес
+  string phone; // -- Телефон
+  string date_issue;
+  string date_wait;
+  string toString()
+  {
+      string str; char buf[32];
+        str.append("---");
+        str.append(itoa(read_id,buf,10));
+        str.append("------------------\r\n");
+        str.append("Абонент: "+lname+" "+fname+" "+mname+"\r\n");
+        str.append("Адрес: " +address+"\r\n");
+        str.append("Телефон: " +phone+"\r\n");
+        str.append("Дата выдачи: "+date_issue+"\r\n");
+        str.append("   возврата: "+date_wait+"\r\n");
+
+        str.append("Автор: "+author+"\r\n");
+        str.append("Заглавие: "+title+"\r\n");
+        if(year!=0) {
+            sprintf(buf, "Год:%4d\r\n", year);
+            str.append(buf);
+            if(volume!=0) {
+            sprintf(buf, "Том:%2d\r\n", volume);
+            str.append(buf); }
+        }
+        if(year_p!=0) {
+            sprintf(buf, "Год:%4d\r\n", year_p);
+            str.append(buf);
+            sprintf(buf, "Номер:%2d\r\n", volume_p);
+            str.append(buf);
+        }
+      return str;
+  }
+};
+
+struct tblRgstrd{
+  string toString() { return "tblRgstrd\r\n"; }
+};
+
+struct tblIssued{
+  string toString() { return "tblIssued\r\n"; }
+};
 
 struct tblAbonent {
   int abon_id; // -- id
@@ -117,7 +178,7 @@ struct tblAbonent {
   int role_id; // -- ссылка на тип читателя
   string login; // -- Логин
   string password; // -- Пароль
-  string ticket; // -- Чит. билет
+  string ticket;  // -- Чит. билет
   string date_in; // -- Дата регистрации
   string date_out; // -- Дата выбытия
   string sreader, srole;
@@ -138,20 +199,6 @@ struct tblAbonent {
   }
 };
 
-
-struct tblDebts {
-  string toString() { return "tblDebts\r\n"; }
-};
-
-struct tblRgstrd{
-  string toString() { return "tblRgstrd\r\n"; }
-};
-
-struct tblIssued{
-  string toString() { return "tblIssued\r\n"; }
-};
-
-
 // ---------------------------------------------------------
 class LinsysDatabase
 {
@@ -171,6 +218,7 @@ public:
     };
     vector<string>& getQueryResult() { return queryResult; }
 
+    // формируем INSERT'ы
     string makeBookQuery(int sortby);
     string makeReaderQuery();
     string makeAbonentQuery();
@@ -181,18 +229,19 @@ public:
     int RequestBook            (string sql, vector<tblBook>    & vec);
     int RequestReader          (string sql, vector<tblReader>  & vec);
     int RequestAbonent         (string sql, vector<tblAbonent> & vec);
-    int RequestReaderDebts     (string sql, vector<tblDebts>   & vec);
+    int RequestReaderDebts     (string sql, vector<tblDebt>   & vec);
     int RequestReaderRegistered(string sql, vector<tblRgstrd>  & vec);
     int RequestBooksIssued     (string sql, vector<tblIssued>  & vec);
 
     // + depricated
     int SearchBook             (string sql);
+//    int SearchReader           (string sql);
     int ListOfReadersDebts     (string par);
     int ListOfReadersRegistered(string par);
     int ListOfBooksIssued      (string par);
+    // -
     int ListOfBooksAvailabled  (string par);
     int CalcIssueStatistics    (string par);
-    // -
 
     // отладка: формируем INSERT'ы
     char *makeInsertBook   (int i);
