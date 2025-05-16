@@ -367,6 +367,7 @@ void LinsysDatabase::createDatabaseSql(char* fname)
         out << makeInsertAbonent(i) << endl;
     out << sqlInsertDataRole << endl;
     out << sqlInsertDataGenre << endl;
+
     logger.log(LOGlevel::INF, "сформированы данные для загрузки");
 
     out.close();
@@ -473,7 +474,7 @@ string LinsysDatabase::addDaysToDate(string date, int days)
 }
 
 //////////////////////////////////////////////////////////////////////
-// + SearchBook
+// + SearchBook + depricated
 int  LinsysDatabase::SearchBook(string sql)
 {
     int records=0;
@@ -663,6 +664,56 @@ int LinsysDatabase::RequestAbonent(string sql, vector<tblAbonent> & vec)
 //    Список свободных книг
 //    Статистика заказов
 // ---------------------------------------------------------
+//
+//    string  makeReaderDebtsQuery();
+//    string  makeReaderRegisteredQuery();
+//    string  makeBooksIssuedQuery();
+//
+//    int RequestReaderDebts     (string sql, vector<tblDebts>   & vec);
+//    int RequestReaderRegistered(string sql, vector<tblRgstrd>  & vec);
+//    int RequestBooksIssued     (string sql, vector<tblIssued>  & vec);
+
+///-------------------------------------------------------------------
+// Сущность «Долги Читателя» = debts
+//
+string  LinsysDatabase::makeReaderDebtsQuery(string par)  {
+    string sql_query = "";
+
+    return sql_query;
+}
+
+int LinsysDatabase::RequestReaderDebts (string sql, vector<tblDebts> & vec){
+
+}
+
+///-------------------------------------------------------------------
+// Сущность «Регистрация читателей» = registered
+//
+string  LinsysDatabase::makeReaderRegisteredQuery(string par)  {
+    string sql_query = "";
+
+    return sql_query;
+}
+
+int LinsysDatabase::RequestReaderRegistered(string sql, vector<tblRgstrd> & vec){
+    return 0;
+}
+
+///-------------------------------------------------------------------
+// Сущность «Выданные книги» = issued
+//
+string  LinsysDatabase::makeBooksIssuedQuery(string par)  {
+    string sql_query = "";
+
+    return sql_query;
+}
+
+int LinsysDatabase::RequestBooksIssued(string sql, vector<tblIssued> & vec){
+    return 0;
+}
+
+
+
 
 //////////////////////////////////////////////////////////////////////
 // + список долгов читателя;

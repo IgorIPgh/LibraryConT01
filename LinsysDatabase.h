@@ -117,7 +117,7 @@ struct tblAbonent {
   int role_id; // -- ссылка на тип читателя
   string login; // -- Логин
   string password; // -- Пароль
-  string ticket;  // -- Чит. билет
+  string ticket; // -- Чит. билет
   string date_in; // -- Дата регистрации
   string date_out; // -- Дата выбытия
   string sreader, srole;
@@ -138,6 +138,20 @@ struct tblAbonent {
   }
 };
 
+
+struct tblDebts {
+  string toString() { return "tblDebts\r\n"; }
+};
+
+struct tblRgstrd{
+  string toString() { return "tblRgstrd\r\n"; }
+};
+
+struct tblIssued{
+  string toString() { return "tblIssued\r\n"; }
+};
+
+
 // ---------------------------------------------------------
 class LinsysDatabase
 {
@@ -147,7 +161,6 @@ private:
     string ofname;
     string logfile;
     vector<string> queryResult;
-//    vector<tblBook> vectorIssuedBook;
 
 public:
     LinsysDatabase(){
@@ -158,27 +171,34 @@ public:
     };
     vector<string>& getQueryResult() { return queryResult; }
 
-    // формируем INSERT'ы
+    string makeBookQuery(int sortby);
+    string makeReaderQuery();
+    string makeAbonentQuery();
+    string makeReaderDebtsQuery     (string par);
+    string makeReaderRegisteredQuery(string par);
+    string makeBooksIssuedQuery     (string par);
+
+    int RequestBook            (string sql, vector<tblBook>    & vec);
+    int RequestReader          (string sql, vector<tblReader>  & vec);
+    int RequestAbonent         (string sql, vector<tblAbonent> & vec);
+    int RequestReaderDebts     (string sql, vector<tblDebts>   & vec);
+    int RequestReaderRegistered(string sql, vector<tblRgstrd>  & vec);
+    int RequestBooksIssued     (string sql, vector<tblIssued>  & vec);
+
+    // + depricated
+    int SearchBook             (string sql);
+    int ListOfReadersDebts     (string par);
+    int ListOfReadersRegistered(string par);
+    int ListOfBooksIssued      (string par);
+    int ListOfBooksAvailabled  (string par);
+    int CalcIssueStatistics    (string par);
+    // -
+
+    // отладка: формируем INSERT'ы
     char *makeInsertBook   (int i);
     char *makeInsertIssue  (int i);
     char *makeInsertReader (int i);
     char *makeInsertAbonent(int i);
-
-    string  makeBookQuery(int sortby);
-    string  makeReaderQuery();
-    string  makeAbonentQuery();
-
-    int RequestBook   (string sql, vector<tblBook>    & vec);
-    int RequestReader (string sql, vector<tblReader>  & vec);
-    int RequestAbonent(string sql, vector<tblAbonent> & vec);
-
-    int  SearchBook  (string sql);
-
-    int  ListOfReadersDebts      (string par);
-    int  ListOfReadersRegistered (string par);
-    int  ListOfBooksIssued       (string par);
-    int  ListOfBooksAvailabled   (string par);
-    int  CalcIssueStatistics     (string par);
 
     // отладка: генерация целого числа в диапазоне
     char* genInt(int min, int max);

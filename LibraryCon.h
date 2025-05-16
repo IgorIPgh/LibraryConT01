@@ -94,7 +94,11 @@ int  modeSearchIssues();
 int  modeSearchTickers();
 int  modeSearchUsers();
 int  modeMakeIssues();
-int  modeMakeReports(int searchInd, string var, int parlen);
+int  modeMakeReports(int searchInd, string par, int parlen);
+
+int  modeReportReaderDebts     (string par);
+int  modeReportReaderRegistered(string par);
+int  modeReportBooksIssued     (string par);
 
 // ---
 int  menuShowTickets();

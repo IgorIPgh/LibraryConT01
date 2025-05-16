@@ -370,8 +370,8 @@ int  menuSearchBooks()
                 clrscr();// очищает текущее текстовое окно и устанавливает курсор в позицию 1,1
 
                 // очистка данных после окончания поиска
-//                for (int i=1; i<=LINSYS_BOOKS; i++)
-//                    biArr[i].var.clear();
+                for (int i=1; i<=LINSYS_BOOKS; i++)
+                    biArr[i].var.clear();
                 return 0;
             } else
             if (choice == KEY_BACKSPACE) {
@@ -599,6 +599,7 @@ int  modeSearchReaders()
     return notExistsYet();
 }
 
+
 ///===================================================================
 ///== [5] Отчеты, справки == menuMakeReports  ========================
 ///
@@ -658,7 +659,10 @@ int  menuMakeReports()
                 putsxy(7+1+len,ypos+(searchInd*2-1), " ");
             } else
             if (choice == KEY_ENTER) {
-                modeMakeReports(searchInd, irArr[searchInd].var, irArr[searchInd].sd);
+                //modeMakeReports(searchInd, irArr[searchInd].var, irArr[searchInd].sd);
+                if (searchInd==0) modeReportReaderDebts(irArr[searchInd].var);
+                if (searchInd==1) modeReportReaderRegistered(irArr[searchInd].var);
+                if (searchInd==2) modeReportBooksIssued(irArr[searchInd].var);
                 setWindow1;
             }
             else { // текст
@@ -668,62 +672,130 @@ int  menuMakeReports()
     }
 }
 
+
 //----------------------------------------------------------
 // Формирование отчета и его вывод в окно. Имеется скроллинг
-// searchInd - номер формируемого отчёта
 // var - вх. параметры формируемого отчёта
-// parlen - число параметров (строк) в каждой записи
-int  modeMakeReports(int searchInd, string var, int parlen)
+int  modeReportReaderDebts(string var)
 {
+    vector<tblDebts> vecDebts;// список для просмотра
+
     LinsysDatabase tdb;
-    int records;
-    switch(searchInd){
-    case 1: records = tdb.ListOfReadersDebts(var); break;
-    case 2: records = tdb.ListOfReadersRegistered(var); break;
-    case 3: records = tdb.ListOfBooksIssued(var); break;
-    case 4: records = tdb.ListOfBooksAvailabled(var); break;
-    case 5: records = tdb.CalcIssueStatistics(var); break;
-    }
-    int available = 0, ind = 0;
-    // maxWin2H - число строк в окне 2 = 24
-    int recwin = maxWin2H/parlen; // записей в окне
-    int maxind = records-recwin;  // индекс 1й записи в последнем окне
+    string sql = tdb.makeReaderDebtsQuery(var);
+    int records = tdb.RequestReaderDebts(sql, vecDebts);
+    int issued = 0;
+    int ind = 0, maxind = records-2;;
     bool update = true;
-    vector<string> &queryResult = tdb.getQueryResult();
 
     PrintTotalFound(records);
 
-    clrWindow2; setWindow2;
-
     if (records == 0){
-        cputs("\r\n    Данная функция пока не реализована");
+        setWindow1;
+        //_setcursortype(_NORMALCURSOR);
         return records;
     }
-    if (maxind <= 0){ // всё помещается в 1 окне
-        for (int i=0; i<records; i++)
-            cputs(queryResult[ind+i].c_str());
+    if (records == 1){
+        clrWindow2; setWindow2;
+        cputs(vecDebts[ind].toString().c_str());
+        setWindow1;
+        // _setcursortype(_NORMALCURSOR);
         return records;
     }
+
+    textcolor(CYAN);
+    setWindow0; putBorder2;
+    clrWindow2; setWindow2;
+    _setcursortype(_NOCURSOR);
+
+    textcolor(WHITE); // установили цвет выводимых данных
 
     while (1)
     {
         if (update) {
             clrscr();// очищает текущее текстовое окно и устанавливает курсор в позицию 1,1
-            for (int i=0; i<recwin; i++)
-                cputs(queryResult[ind+i].c_str());
+            cputs(vecDebts[ind].toString().c_str());
         }
+
         int choice = getkbm();
 
-        if (choice == KEY_TAB || choice == KEY_ENTER)
-            { return records; }
-        else if (choice == MOUSE_LCLICK || choice == MOUSE_WHEELUP)
+        if (choice == KEY_ENTER) {
+                textcolor(YELLOW);
+                setWindow0; putBorder2;
+                setWindow1;
+                _setcursortype(_NORMALCURSOR);
+                return records;
+        }
+
+        else if (choice == MOUSE_WHEELUP)
             { update = ind!=0; if (--ind<0) ind=0; }
-        else if (choice == MOUSE_RCLICK || choice == MOUSE_WHEELDOWN)
+        else if (choice == MOUSE_WHEELDOWN)
             { update = ind!=maxind; if (++ind>maxind) ind=maxind;; }
         else if (choice - KEY_SPECIAL > 0)
-            { indexControl(choice, maxind, recwin, ind, update); }
+            { indexControl(choice, maxind, 10, ind, update); }
     }
 }
+
+
+int  modeReportReaderRegistered(string par){
+    return 0;
+}
+int  modeReportBooksIssued     (string par){
+    return 0;
+}
+
+
+
+//int  modeMakeReports(int searchInd, string var, int parlen)
+//{
+//    LinsysDatabase tdb;
+//    int records;
+//    switch(searchInd){
+//    case 1: records = tdb.ListOfReadersDebts(var); break;
+//    case 2: records = tdb.ListOfReadersRegistered(var); break;
+//    case 3: records = tdb.ListOfBooksIssued(var); break;
+//    case 4: records = tdb.ListOfBooksAvailabled(var); break;
+//    case 5: records = tdb.CalcIssueStatistics(var); break;
+//    }
+//    int available = 0, ind = 0;
+//    // maxWin2H - число строк в окне 2 = 24
+//    int recwin = maxWin2H/parlen; // записей в окне
+//    int maxind = records-recwin;  // индекс 1й записи в последнем окне
+//    bool update = true;
+//    vector<string> &queryResult = tdb.getQueryResult();
+//
+//    PrintTotalFound(records);
+//
+//    clrWindow2; setWindow2;
+//
+//    if (records == 0){
+//        cputs("\r\n    Данная функция пока не реализована");
+//        return records;
+//    }
+//    if (maxind <= 0){ // всё помещается в 1 окне
+//        for (int i=0; i<records; i++)
+//            cputs(queryResult[ind+i].c_str());
+//        return records;
+//    }
+//
+//    while (1)
+//    {
+//        if (update) {
+//            clrscr();// очищает текущее текстовое окно и устанавливает курсор в позицию 1,1
+//            for (int i=0; i<recwin; i++)
+//                cputs(queryResult[ind+i].c_str());
+//        }
+//        int choice = getkbm();
+//
+//        if (choice == KEY_TAB || choice == KEY_ENTER)
+//            { return records; }
+//        else if (choice == MOUSE_LCLICK || choice == MOUSE_WHEELUP)
+//            { update = ind!=0; if (--ind<0) ind=0; }
+//        else if (choice == MOUSE_RCLICK || choice == MOUSE_WHEELDOWN)
+//            { update = ind!=maxind; if (++ind>maxind) ind=maxind;; }
+//        else if (choice - KEY_SPECIAL > 0)
+//            { indexControl(choice, maxind, recwin, ind, update); }
+//    }
+//}
 
 
 ///===================================================================
